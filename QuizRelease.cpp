@@ -643,7 +643,7 @@ void CreateNewLib()
 	//check if there is any file that does exist in the same directory
 	strcat(filename, ".qz");
 	NewQuizFile.open(filename, ios::in);
-	if(NewQuizFile != NULL)		//the file does exist
+	if(NewQuizFile.is_open())		//the file does exist
 	{
 		NewQuizFile.close();
 		ShowText("您想創建的檔案已經存在，請輸入新檔名或將舊檔刪除！\n",
