@@ -27,9 +27,9 @@ CommandLine=
 Folders=
 IncludeVersionInfo=0
 SupportXPThemes=0
-CompilerSet=0
-CompilerSettings=0000000000000000000000000
-UnitCount=6
+CompilerSet=1
+CompilerSettings=0000000000000000001000000
+UnitCount=8
 
 [VersionInfo]
 Major=1
@@ -101,6 +101,26 @@ BuildCmd=
 
 [Unit6]
 FileName=CreativeCommons.h
+CompileCpp=1
+Folder=
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit7]
+FileName=QuizCommon.cpp
+CompileCpp=1
+Folder=
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit8]
+FileName=QuizCommon.h
 CompileCpp=1
 Folder=
 Compile=1

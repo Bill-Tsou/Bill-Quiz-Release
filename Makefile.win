@@ -5,8 +5,8 @@ CPP      = g++.exe -D__DEBUG__
 CC       = gcc.exe -D__DEBUG__
 WINDRES  = windres.exe
 RES      = QuizRelease_private.res
-OBJ      = QuizRelease.o Menu.o CreativeCommons.o $(RES)
-LINKOBJ  = QuizRelease.o Menu.o CreativeCommons.o $(RES)
+OBJ      = QuizRelease.o Menu.o CreativeCommons.o QuizCommon.o $(RES)
+LINKOBJ  = QuizRelease.o Menu.o CreativeCommons.o QuizCommon.o $(RES)
 LIBS     = -L"C:/Program Files (x86)/Dev-Cpp/MinGW64/lib" -L"C:/Program Files (x86)/Dev-Cpp/MinGW64/x86_64-w64-mingw32/lib" -static-libgcc -lgdi32 -g3
 INCS     = -I"C:/Program Files (x86)/Dev-Cpp/MinGW64/include" -I"C:/Program Files (x86)/Dev-Cpp/MinGW64/x86_64-w64-mingw32/include" -I"C:/Program Files (x86)/Dev-Cpp/MinGW64/lib/gcc/x86_64-w64-mingw32/4.9.2/include"
 CXXINCS  = -I"C:/Program Files (x86)/Dev-Cpp/MinGW64/include" -I"C:/Program Files (x86)/Dev-Cpp/MinGW64/x86_64-w64-mingw32/include" -I"C:/Program Files (x86)/Dev-Cpp/MinGW64/lib/gcc/x86_64-w64-mingw32/4.9.2/include" -I"C:/Program Files (x86)/Dev-Cpp/MinGW64/lib/gcc/x86_64-w64-mingw32/4.9.2/include/c++"
@@ -33,6 +33,9 @@ Menu.o: Menu.cpp
 
 CreativeCommons.o: CreativeCommons.cpp
 	$(CPP) -c CreativeCommons.cpp -o CreativeCommons.o $(CXXFLAGS)
+
+QuizCommon.o: QuizCommon.cpp
+	$(CPP) -c QuizCommon.cpp -o QuizCommon.o $(CXXFLAGS)
 
 QuizRelease_private.res: QuizRelease_private.rc CreativeCommons.rc
 	$(WINDRES) -i QuizRelease_private.rc --input-format=rc -o QuizRelease_private.res -O coff 
