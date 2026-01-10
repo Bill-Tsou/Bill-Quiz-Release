@@ -78,12 +78,18 @@ int MENU::StartChoose(int pass)
 			if(key == 72)				//key up
 			{
 				choosenum -= 1;
+				if(choosenum < 0)
+					choosenum = total_ContextNumber - 1;
+
 				if(strcmp(MenuContext[choosenum], "*BLOCK*") == 0)
 					choosenum -= 1;		//crossover the BLOCK
 			}
 			else if(key == 80)			//key down
 			{
 				choosenum += 1;
+				if(choosenum > total_ContextNumber - 1)
+					choosenum = 0;
+
 				if(strcmp(MenuContext[choosenum], "*BLOCK*") == 0)
 					choosenum += 1;		//crossover the BLOCK
 			}
@@ -96,10 +102,6 @@ int MENU::StartChoose(int pass)
 				//remember the functional like //history cannot be deleted!
 				return (choosenum * (-1) - 1);	//return the negative chosen number - 1
 			}	//in order to prevent number 0 should be opened or deleted
-			if(choosenum < 0)
-				choosenum = total_ContextNumber - 1;
-			if(choosenum > total_ContextNumber - 1)
-				choosenum = 0;
 
 			GotoXY(0, Inity + choosenum);
 			ChangeColour(choose_colour);
