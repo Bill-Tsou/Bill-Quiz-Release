@@ -1,4 +1,4 @@
-/*
+Ôªø/*
  * this dialog was built on 28/09/18 21:07
  * Tranditional Chinese can only be seen when using specific Windows operating system
  * all of the words were using ANSI charset
@@ -19,7 +19,7 @@ LRESULT CALLBACK CreativeCommonDialogProc(HWND hwnd, UINT Message,
 		case WM_CREATE:
 			hCreativeCommons = LoadBitmap(GetModuleHandle(NULL), MAKEINTRESOURCE(BITMAP_CREATIVECOMMONS));
 			if(hCreativeCommons == NULL)
-				MessageBoxA(hwnd, "The bitmap picture cannot be shown...", DialogTitleEn, MB_ICONERROR);
+				MessageBoxW(hwnd, L"The bitmap picture cannot be shown...", DialogTitleEn, MB_ICONERROR);
 			
 			//Change the font of the dialog
 			hArial = CreateFont(FontHeight - 5, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, DEFAULT_CHARSET,
@@ -36,7 +36,8 @@ LRESULT CALLBACK CreativeCommonDialogProc(HWND hwnd, UINT Message,
 			BITMAP bm;
 			PAINTSTRUCT ps;
 			RECT rcText;
-			char ShowText[110];
+			const size_t n_ShowText = 110;
+			wchar_t ShowText[n_ShowText];
 			
 			//get the handle to device context
 			HDC hdc = BeginPaint(hwnd, &ps);
@@ -58,33 +59,33 @@ LRESULT CALLBACK CreativeCommonDialogProc(HWND hwnd, UINT Message,
 			SelectObject(hdc, hArial);
 			if(Programme_Language == English)
 			{
-				strcpy(ShowText, "BY (Attribution): You should tag the one who designed the programme "
-					"when sharing.");
-				DrawTextA(hdc, ShowText, strlen(ShowText), &rcText, DT_WORDBREAK);
+				wcsncpy(ShowText, L"BY (Attribution): You should tag the one who designed the programme "
+					"when sharing.", n_ShowText);
+				DrawTextW(hdc, ShowText, wcslen(ShowText), &rcText, DT_WORDBREAK);
 				rcText.top += FontHeight * 2;
-				strcpy(ShowText, "NC (Non-commercial): You are NOT ALLOWED to use this programme with "
-					"commercial purposes.");
-				DrawTextA(hdc, ShowText, strlen(ShowText), &rcText, DT_WORDBREAK);
+				wcsncpy(ShowText, L"NC (Non-commercial): You are NOT ALLOWED to use this programme with "
+					"commercial purposes.", n_ShowText);
+				DrawTextW(hdc, ShowText, wcslen(ShowText), &rcText, DT_WORDBREAK);
 				rcText.top += FontHeight * 3;
-				strcpy(ShowText, "ND (No Derivative Works): You cannot share the programme when "
-					"you\'ve done some modifications.");
-				DrawTextA(hdc, ShowText, strlen(ShowText), &rcText, DT_WORDBREAK);
+				wcsncpy(ShowText, L"ND (No Derivative Works): You cannot share the programme when "
+					"you\'ve done some modifications.", n_ShowText);
+				DrawTextW(hdc, ShowText, wcslen(ShowText), &rcText, DT_WORDBREAK);
 				rcText.top += FontHeight * 4;
 			}
 			else	//set the language as Chinese
 			{
-				strcpy(ShowText, "BY ©m¶Wº–•‹°G∑Ì±z§¿®…¶πµ{¶°Æ…°A¿≥∑Ìº–µ˘µ{¶°≥]≠p™Ã©m¶W");
-				DrawTextA(hdc, ShowText, strlen(ShowText), &rcText, DT_WORDBREAK);
+				wcsncpy(ShowText, L"BY ÂßìÂêçÊ®ôÁ§∫ÔºöÁï∂ÊÇ®ÂàÜ‰∫´Ê≠§Á®ãÂºèÊôÇÔºåÊáâÁï∂Ê®ôË®ªÁ®ãÂºèË®≠Ë®àËÄÖÂßìÂêç", n_ShowText);
+				DrawTextW(hdc, ShowText, wcslen(ShowText), &rcText, DT_WORDBREAK);
 				rcText.top += FontHeight * 3;
-				strcpy(ShowText, "NC ´D∞”∑~•Œ≥~°G≥o≠”µ{¶°§£±o•X∞‚°B¬‡ΩÊ");
-				DrawTextA(hdc, ShowText, strlen(ShowText), &rcText, DT_WORDBREAK);
+				wcsncpy(ShowText, L"NC ÈùûÂïÜÊ•≠Áî®ÈÄîÔºöÈÄôÂÄãÁ®ãÂºè‰∏çÂæóÂá∫ÂîÆ„ÄÅËΩâË≥£", n_ShowText);
+				DrawTextW(hdc, ShowText, wcslen(ShowText), &rcText, DT_WORDBREAK);
 				rcText.top += FontHeight * 2;
-				strcpy(ShowText, "ND ∏T§ÓßÔß@°G±zª›≠n´O´˘µ{¶°≠Ï•ª™∫•\\Ø‡°A§¿®…Æ…§£±o•Ù∑N≠◊ßÔ•ªµ{¶°™∫•Œ≥~");
-				DrawTextA(hdc, ShowText, strlen(ShowText), &rcText, DT_WORDBREAK);
+				wcsncpy(ShowText, L"ND Á¶ÅÊ≠¢Êîπ‰ΩúÔºöÊÇ®ÈúÄË¶Å‰øùÊåÅÁ®ãÂºèÂéüÊú¨ÁöÑÂäüËÉΩÔºåÂàÜ‰∫´ÊôÇ‰∏çÂæó‰ªªÊÑè‰øÆÊîπÊú¨Á®ãÂºèÁöÑÁî®ÈÄî", n_ShowText);
+				DrawTextW(hdc, ShowText, wcslen(ShowText), &rcText, DT_WORDBREAK);
 				rcText.top += FontHeight * 3;
 			}
-			strcpy(ShowText, "Creative Commons, Taiwan");
-			DrawTextA(hdc, ShowText, strlen(ShowText), &rcText, DT_CENTER);
+			wcsncpy(ShowText, L"Creative Commons, Taiwan", n_ShowText);
+			DrawTextW(hdc, ShowText, wcslen(ShowText), &rcText, DT_CENTER);
 			
 			DeleteDC(hdcMem);
 			EndPaint(hwnd, &ps);
@@ -128,7 +129,7 @@ void RegisterCreativeCommonsDialog()
 	CreativeCommonsDialog.lpszClassName = "DialogBoxCreativeCommons";
 	
 	if(!RegisterClassA(&CreativeCommonsDialog))
-		MessageBoxA(NULL, "DialogBox cannot be registered!", DialogTitleEn, MB_ICONERROR);
+		MessageBoxW(NULL, L"DialogBox cannot be registered!", DialogTitleEn, MB_ICONERROR);
 }
 
 void ShowCreativeCommonsDialog()
@@ -136,7 +137,7 @@ void ShowCreativeCommonsDialog()
 	//get the console handle
 	HWND hwndConsole = GetConsoleWindow();
 
-	CreateWindowA("DialogBoxCreativeCommons", (Programme_Language == Chinese ? DialogTitleCh : DialogTitleEn),
+	CreateWindowW(L"DialogBoxCreativeCommons", (Programme_Language == Chinese ? DialogTitleCh : DialogTitleEn),
 		WS_VISIBLE | WS_SYSMENU, CW_USEDEFAULT, CW_USEDEFAULT, 410, 510, hwndConsole, NULL, NULL, NULL);
 	
 	//create message loop to process the messages

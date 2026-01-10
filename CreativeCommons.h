@@ -1,4 +1,4 @@
-#ifndef CREATIVECOMMONS_H
+﻿#ifndef CREATIVECOMMONS_H
 #define CREATIVECOMMONS_H
 
 #include <windows.h>
@@ -9,8 +9,8 @@
 #define BITMAP_CREATIVECOMMONS		1001
 #define CREATIVECOMMONS_BUTTONOK	1002
 
-const char DialogTitleEn[] = "Quiz - Creative Commons";
-const char DialogTitleCh[] = "Quiz - �Х� CC";
+const wchar_t DialogTitleEn[] = L"Quiz - Creative Commons";
+const wchar_t DialogTitleCh[] = L"Quiz - 創用 CC";
 const unsigned short int FontHeight = 27;
 
 void ShowCreativeCommonsDialog();

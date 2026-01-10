@@ -1,4 +1,4 @@
-//Bill Tsou, from National Ilan University
+ï»¿//Bill Tsou, from National Ilan University
 //Built the prgramme Quiz on March 5th, 2018
 
 #include <iostream>
@@ -68,6 +68,9 @@ int main()
 	int total, chosen, passchoose = 0;
 	char Answer[MAXVALUE][MAXLINE], Question[MAXVALUE][MAXLINE];
 
+    // Set the console output code page to UTF-8 to fix display error on Windows 11
+    SetConsoleOutputCP(65001);
+
 	RegisterCreativeCommonsDialog();	//register dialog class only once
 
 Start:
@@ -76,7 +79,7 @@ Start:
 	system("cls");					//clear everything on the console window
 	ProgrammeTitle();				//show the programme title
 	
-	ShowText("±q¿ï³æ¤¤¿ï¾Ü´úÅç©Î¥\\¯à (Delete §R°£¿ï³æ¤¤ªºÀÉ®×)¡G",
+	ShowText("å¾é¸å–®ä¸­é¸æ“‡æ¸¬é©—æˆ–åŠŸèƒ½ (Delete åˆªé™¤é¸å–®ä¸­çš„æª”æ¡ˆ)ï¼š",
 	 "Select the quiz or functionality from Menu (Delete to remove the file on Menu):");
 	total = GetTheMenu(Answer);		//use Answer as buffer to store the menu info
 	//total to calculate how much lines are in the file
@@ -91,15 +94,15 @@ Start:
 		total = -1;
 	if(Programme_Language == Chinese)
 	{
-		strcpy(Answer[total + 1], " /Ãö©ó");
-		strcpy(Answer[total + 2], " /»y¨¥³]©w Language");
-		strcpy(Answer[total + 3], " /·j´M¸ê®Æ®w");
-		strcpy(Answer[total + 4], " /¶}±ÒÀÉ®×¦ì¸m");
-		strcpy(Answer[total + 5], " /½s¿è¿ï³æ¤¤ªºÀÉ®×");
-		strcpy(Answer[total + 6], " /·s¼W²{¦³ÀÉ®×¨ì¿ï³æ");
-		strcpy(Answer[total + 7], " /·s¼W¸ê®Æ®w");
-		strcpy(Answer[total + 8], " /²MªÅ¾ú¥vÀÉ®×");
-		strcpy(Answer[total + 9], " /¾ú¥v¿ù»~½m²ß");
+		strcpy(Answer[total + 1], " /é—œæ–¼");
+		strcpy(Answer[total + 2], " /èªè¨€è¨­å®š Language");
+		strcpy(Answer[total + 3], " /æœå°‹è³‡æ–™åº«");
+		strcpy(Answer[total + 4], " /é–‹å•Ÿæª”æ¡ˆä½ç½®");
+		strcpy(Answer[total + 5], " /ç·¨è¼¯é¸å–®ä¸­çš„æª”æ¡ˆ");
+		strcpy(Answer[total + 6], " /æ–°å¢ç¾æœ‰æª”æ¡ˆåˆ°é¸å–®");
+		strcpy(Answer[total + 7], " /æ–°å¢è³‡æ–™åº«");
+		strcpy(Answer[total + 8], " /æ¸…ç©ºæ­·å²æª”æ¡ˆ");
+		strcpy(Answer[total + 9], " /æ­·å²éŒ¯èª¤ç·´ç¿’");
 	}
 	else
 	{
@@ -136,7 +139,7 @@ Start:
 		else						//If the menu file is not empty or does not exist
 		{
 			ChangeColour(14);
-			ShowText("\n¿ï³æ¬OªÅªº¡I¨S¦³¿ìªk±q¿ï³æ¤¤·j´MÃöÁä¦r\n", "\nMenu is empty! Cannot search from Menu\n");
+			ShowText("\né¸å–®æ˜¯ç©ºçš„ï¼æ²’æœ‰è¾¦æ³•å¾é¸å–®ä¸­æœå°‹é—œéµå­—\n", "\nMenu is empty! Cannot search from Menu\n");
 			ChangeColour(7);
 			getch();
 		}
@@ -154,7 +157,7 @@ Start:
 		else
 		{
 			ChangeColour(14);
-			ShowText("\n¿ï³æ¤¤¨S¦³¿ï¶µ¥i¨Ñ½s¿è...\n", "\nThere is no file on Menu to edit...\n");
+			ShowText("\né¸å–®ä¸­æ²’æœ‰é¸é …å¯ä¾›ç·¨è¼¯...\n", "\nThere is no file on Menu to edit...\n");
 			ChangeColour(7);
 			getch();
 		}
@@ -174,9 +177,9 @@ Start:
 	{
 		cout << endl;
 		ChangeColour(13);
-		ShowText("Quiz ±N·|§â¾ú¥vÀÉ®×ªº¸ê®Æ¥ş³¡²M°£\n",
+		ShowText("Quiz å°‡æœƒæŠŠæ­·å²æª”æ¡ˆçš„è³‡æ–™å…¨éƒ¨æ¸…é™¤\n",
 			"Quiz will clear all the data in History file\n");
-		ShowText("±z½T©w­n³o¼Ë°µ¶Ü¡H(y/n): ",
+		ShowText("æ‚¨ç¢ºå®šè¦é€™æ¨£åšå—ï¼Ÿ(y/n): ",
 			"Are you sure to continue?(y/n): ");
 		char confirm = 'A';
 		while(confirm != 'Y' && confirm != 'N')
@@ -188,7 +191,7 @@ Start:
 			if(!file)
 			{
 				ChangeColour(15); 
-				ShowText("«Ø¥ßÀÉ®×®Éµo¥Í°İÃD¡I", "Error when building History file");
+				ShowText("å»ºç«‹æª”æ¡ˆæ™‚ç™¼ç”Ÿå•é¡Œï¼", "Error when building History file");
 				getch();
 			}
 			else
@@ -204,14 +207,14 @@ Start:
 		if(total == 0)
 		{
 			ChangeColour(14);
-			ShowText("©Ò¦³ªº¿ù»~¤w³Q²M°£¡I\n\n",
+			ShowText("æ‰€æœ‰çš„éŒ¯èª¤å·²è¢«æ¸…é™¤ï¼\n\n",
 			 "All of the past incorrect questions have been eliminated!\n\n");
 			getch();
 			goto Start;
 		}
 		else if(total == ERROR_CODE)
 		{	//History file hasn't been built
-			ShowText("¾ú¥vÀÉ®×ÀÉ®×©|¥¼«Ø¥ß¡I\n\n", "The history file has not been built!\n\n");
+			ShowText("æ­·å²æª”æ¡ˆæª”æ¡ˆå°šæœªå»ºç«‹ï¼\n\n", "The history file has not been built!\n\n");
 			getch();
 			goto Start;
 		}
@@ -235,7 +238,7 @@ Start:
 		if(total == 0)
 		{
 			ChangeColour(15);
-			ShowText("ÀÉ®×¤¤¨S¦³¥ô¦ó¦³®Ä¸ê®Æ...", "No valid library...");
+			ShowText("æª”æ¡ˆä¸­æ²’æœ‰ä»»ä½•æœ‰æ•ˆè³‡æ–™...", "No valid library...");
 			getch();
 			goto Start;
 		}
@@ -250,7 +253,7 @@ Start:
 
 	do
 	{
-		ShowText("±z·Q­n¦A­«·s´úÅç¶Ü (y/n)? ", "Do you want to test again (y/n)? ");
+		ShowText("æ‚¨æƒ³è¦å†é‡æ–°æ¸¬é©—å— (y/n)? ", "Do you want to test again (y/n)? ");
 		chosen = getch();
 		if(toupper(chosen) == 'Y')
 			goto Start;
@@ -274,7 +277,7 @@ int EmptyFile(char *filename)
 	File.open(filename, ios::in);
 	if(!File)
 	{
-		ShowText("»İ­n·s¼WÀÉ®× ", "The file should be built ");
+		ShowText("éœ€è¦æ–°å¢æª”æ¡ˆ ", "The file should be built ");
 		cout << filename << " ";
 		return -1;
 	}
@@ -302,7 +305,7 @@ void ProgrammeTitle()
 {
 	system("cls");		//clear the console interface
 	ChangeColour(14);
-	ShowText("Quiz - ¤¤­^¤å³æ¦r´úÅç\n\n",
+	ShowText("Quiz - ä¸­è‹±æ–‡å–®å­—æ¸¬é©—\n\n",
 	 "Quiz - Test for Chinese, English Translation\n\n");
 	ChangeColour(7);
 }
@@ -319,7 +322,7 @@ int ReadSetup()
 		if(!Setup)	//if the [Quiz].set file doesn't exist, build a new one
 		{
 			ChangeColour(12);
-			ShowText("«Ø¥ßÀÉ®×®É¥X²{°İÃD",
+			ShowText("å»ºç«‹æª”æ¡ˆæ™‚å‡ºç¾å•é¡Œ",
 			 "There\'s some problems while building setup file!");
 			getch();
 			exit(0);
@@ -351,7 +354,7 @@ int GetTheMenu(char MenuContext[][MAXLINE])
 		if(!QuizMenu)
 		{
 			ChangeColour(12);
-			ShowText("«Ø¥ßÀÉ®×®É¥X²{°İÃD",
+			ShowText("å»ºç«‹æª”æ¡ˆæ™‚å‡ºç¾å•é¡Œ",
 			 "There\'s some problems while building setup file!");
 			getch();
 			exit(0);
@@ -380,13 +383,13 @@ int ReadQuestion(char Answer[][MAXLINE], char Question[][MAXLINE], char *filenam
 	if(!QuizFile)
 	{
 		cout << endl << endl;
-		ShowText("±z©Ò­n¶}±ÒªºÀÉ®×²{¦b¤w¸g¤£¦s¦b¡I\n",
+		ShowText("æ‚¨æ‰€è¦é–‹å•Ÿçš„æª”æ¡ˆç¾åœ¨å·²ç¶“ä¸å­˜åœ¨ï¼\n",
 		 "The file you\'ve chosen does not exist now!\n");
 		return ERROR_CODE;
 	}
 	else
 	{
-		ShowText("¥¿¦bÅª¨úÀÉ®× ", "Reading the file ");
+		ShowText("æ­£åœ¨è®€å–æª”æ¡ˆ ", "Reading the file ");
 		cout << filename << " ...";
 
 		//read and string tokenize every line of the file
@@ -416,7 +419,7 @@ int ReadQuestion(char Answer[][MAXLINE], char Question[][MAXLINE], char *filenam
 			number += 1;
 		}
 		QuizFile.close();
-		ShowText("§¹¦¨\n", "Done\n");
+		ShowText("å®Œæˆ\n", "Done\n");
 	}
 	return number;
 }
@@ -427,12 +430,12 @@ void About()
 	ProgrammeTitle(); 
 	ChangeColour(10);	//change to colour green
 	
-	ShowText("¦¹µ{¦¡­P¤O©ó¥[±j PVQC ²Ä¤@³¡¤À\n",
+	ShowText("æ­¤ç¨‹å¼è‡´åŠ›æ–¼åŠ å¼· PVQC ç¬¬ä¸€éƒ¨åˆ†\n",
 	 "This programme is dedicated to improving the first part of PVQC\n");
-	ShowText("§Æ±æ¯àÂÇ¥Ñ¡u¾Ç²ßª÷¦r¶ğ¡v¡B¡u¿ò§Ñ¦±½u¡v²z½×¥[±j¾Ç²ß®ÄªG\n\n",
+	ShowText("å¸Œæœ›èƒ½è—‰ç”±ã€Œå­¸ç¿’é‡‘å­—å¡”ã€ã€ã€Œéºå¿˜æ›²ç·šã€ç†è«–åŠ å¼·å­¸ç¿’æ•ˆæœ\n\n",
 	 "Hope to achieve the goal by the theories of \"Learning Pyramid\" and "
 	 "\"Forgetting Curve\"\n\n");
-	ShowText("µ{¦¡«Ø¥ßªÌ¡G¹QªÃ§» °ê¥ß©yÄõ¤j¾Ç ¹q¾÷¤uµ{¾Ç¨t\n",
+	ShowText("ç¨‹å¼å»ºç«‹è€…ï¼šé„’ç§‰å® åœ‹ç«‹å®œè˜­å¤§å­¸ é›»æ©Ÿå·¥ç¨‹å­¸ç³»\n",
 	 "Programme builder: Ping-Hung, Tsou from Department of Electrical Engineering, "
 	 "National Ilan University, Taiwan\n");
 	cout << "March 5th, 2018\n\n";
@@ -441,7 +444,7 @@ void About()
 	ShowCreativeCommonsDialog();
 	
 	ChangeColour(11);
-	ShowText("«ö¤U¥ô·NÁäªğ¦^...", "Press any key to back to Menu...");
+	ShowText("æŒ‰ä¸‹ä»»æ„éµè¿”å›...", "Press any key to back to Menu...");
 	getch();
 	ChangeColour(7);	//change to the original colour
 }
@@ -451,8 +454,8 @@ void EnterSetup()
 	ProgrammeTitle();	//show the title on the top of the programme
 	MENU *menu = new MENU();
 	
-	ShowText("½Ğ¿ï¾Ü»y¨¥¡G", "Please select the language:");
-	char items[3][MAXLINE] = {"ÁcÅé¤¤¤å", "English"};
+	ShowText("è«‹é¸æ“‡èªè¨€ï¼š", "Please select the language:");
+	char items[3][MAXLINE] = {"ç¹é«”ä¸­æ–‡", "English"};
 	int selectnum = 0;
 	
 	menu->InitMenu(items, 2, InitialY);
@@ -463,7 +466,7 @@ void EnterSetup()
 	SetupOutput.open("[Quiz].set", ios::out);
 	if(!SetupOutput)
 	{
-		ShowText("«Ø¥ßÀÉ®×®Éµo¥Í°İÃD¡I\n\n", "Setup File cannot be built!\n\n");
+		ShowText("å»ºç«‹æª”æ¡ˆæ™‚ç™¼ç”Ÿå•é¡Œï¼\n\n", "Setup File cannot be built!\n\n");
 		getch();
 		return;
 	}
@@ -496,7 +499,7 @@ void SearchOnMenu()
 	OpenFile.open("[Quiz].qrc", ios::in);
 	if(!OpenFile)
 	{
-		ShowText("MENU ÀÉ®×¤£¦s¦b¡I\n\n", "Menu file does not exist!\n\n");
+		ShowText("MENU æª”æ¡ˆä¸å­˜åœ¨ï¼\n\n", "Menu file does not exist!\n\n");
 		getch();
 		return;
 	}
@@ -508,12 +511,12 @@ void SearchOnMenu()
 	}
 	OpenFile.close();
 	
-	ShowText("½Ğ¿é¤J­n±q¿ï³æ¸ê®Æ·j´Mªº¦r¦ê¡G",
+	ShowText("è«‹è¼¸å…¥è¦å¾é¸å–®è³‡æ–™æœå°‹çš„å­—ä¸²ï¼š",
 	 "Please Enter the string you want to search from the file on Menu: ");
 	fflush(stdin);
 	gets(search);
 	
-	ShowText("\n\n\tµª®×(­^¤å)\t\t\t\t\t\tÃD¥Ø(¤¤¤å)\n\n",
+	ShowText("\n\n\tç­”æ¡ˆ(è‹±æ–‡)\t\t\t\t\t\té¡Œç›®(ä¸­æ–‡)\n\n",
 	 "\n\nAnswer\t(English)\t\t\t\t\t\tQuestion(Chinese)\n\n");
 
 	for(int i = 0; i < number; i++)
@@ -522,7 +525,7 @@ void SearchOnMenu()
 		cout << Menu[i] << ": ";
 		if(!OpenFile)
 		{
-			ShowText("ÀÉ®×¤£¦s¦b¡I\n\n", "The file doesn\'t exist!\n\n");
+			ShowText("æª”æ¡ˆä¸å­˜åœ¨ï¼\n\n", "The file doesn\'t exist!\n\n");
 			continue;
 		}
 		else
@@ -561,19 +564,19 @@ void SearchOnMenu()
 			cout << endl;
 		}
 	}
-	ShowText("Á`¦@·j´M¨ì¡G", "Total: ");
+	ShowText("ç¸½å…±æœå°‹åˆ°ï¼š", "Total: ");
 	cout << counter;
-	ShowText(" µ§¸ê®Æ\n\n", " counts\n\n");
+	ShowText(" ç­†è³‡æ–™\n\n", " counts\n\n");
 	if(counter >= MAXVALUE)
 	{ 
-		ShowText("·j´M¨ìªº¸ê®Æ¤w¸g¶W¹LÀx¦s¤W­­¡A­YÀx¦sÀÉ®×¤£¤@©w¯àÀx¦s¨ì©Ò¦³·j´Mµ²ªG\n\n",
+		ShowText("æœå°‹åˆ°çš„è³‡æ–™å·²ç¶“è¶…éå„²å­˜ä¸Šé™ï¼Œè‹¥å„²å­˜æª”æ¡ˆä¸ä¸€å®šèƒ½å„²å­˜åˆ°æ‰€æœ‰æœå°‹çµæœ\n\n",
 		 "The number of results is greater than one file can be saved.\n"
 		 "If you save the file, the part of the result would be missed.\n\n");
 		counter = MAXVALUE - 1;
 	}
 	do
 	{
-		ShowText("¬O§_­nÀx¦s·j´Mµ²ªG¬°·sÀÉ®× (y/n)? ",
+		ShowText("æ˜¯å¦è¦å„²å­˜æœå°‹çµæœç‚ºæ–°æª”æ¡ˆ (y/n)? ",
 		 "Do you want to save the search result as a new file (y/n)? ");
 		number = getch();
 		cout << endl << endl;
@@ -581,14 +584,14 @@ void SearchOnMenu()
 	if(toupper(number) == 'N')
 		return;
 	//if the user wants to save the result
-	ShowText("½Ğ¿é¤J·sªºÀÉ®×¦WºÙ¡G", "Please enter new file name: ");
+	ShowText("è«‹è¼¸å…¥æ–°çš„æª”æ¡ˆåç¨±ï¼š", "Please enter new file name: ");
 	fflush(stdin);
 	gets(linebuffer);
 	strcat(linebuffer, ".qz");
 	OpenFile.open(linebuffer, ios::out);
 	if(!OpenFile)
 	{
-		ShowText("ÀÉ®×µLªk«Ø¥ß¡I\n\n", "The file cannot be built!\n\n");
+		ShowText("æª”æ¡ˆç„¡æ³•å»ºç«‹ï¼\n\n", "The file cannot be built!\n\n");
 		getch();
 		return;
 	}
@@ -608,7 +611,7 @@ void AddOldFile()
 	ProgrammeTitle();
 	
 	char filename[50];
-	ShowText("½Ğ¿é¤JÀÉ®×¦WºÙ (.qzÀÉ®×)¡G",
+	ShowText("è«‹è¼¸å…¥æª”æ¡ˆåç¨± (.qzæª”æ¡ˆ)ï¼š",
 	 "Please enter the filename with file name extension \"qz\": ");
 	gets(filename);
 	
@@ -620,7 +623,7 @@ void AddOldFile()
 	newfile.open(filename, ios::in);
 	if(!newfile)
 	{
-		ShowText("ÀÉ®×¤£¦s¦b¡I\n\n", "The file does not exist!\n\n");
+		ShowText("æª”æ¡ˆä¸å­˜åœ¨ï¼\n\n", "The file does not exist!\n\n");
 		getch();
 	}
 	else
@@ -638,7 +641,7 @@ void CreateNewLib()
 	char filename[50];
 	fstream NewQuizFile;
 	
-	ShowText("½Ğ¿é¤J·Q³Ğ«ØÀÉ®×ªºÀÉ¦W¡G", "Please enter the filename of a new file: ");
+	ShowText("è«‹è¼¸å…¥æƒ³å‰µå»ºæª”æ¡ˆçš„æª”åï¼š", "Please enter the filename of a new file: ");
 	gets(filename);
 	//check if there is any file that does exist in the same directory
 	strcat(filename, ".qz");
@@ -646,7 +649,7 @@ void CreateNewLib()
 	if(NewQuizFile.is_open())		//the file does exist
 	{
 		NewQuizFile.close();
-		ShowText("±z·Q³Ğ«ØªºÀÉ®×¤w¸g¦s¦b¡A½Ğ¿é¤J·sÀÉ¦W©Î±NÂÂÀÉ§R°£¡I\n",
+		ShowText("æ‚¨æƒ³å‰µå»ºçš„æª”æ¡ˆå·²ç¶“å­˜åœ¨ï¼Œè«‹è¼¸å…¥æ–°æª”åæˆ–å°‡èˆŠæª”åˆªé™¤ï¼\n",
 		 "The file you want to create has already been existed.\n"
 		 "Please enter the new filename or delete the old file!\n");
 		getch();
@@ -657,7 +660,7 @@ void CreateNewLib()
 	NewQuizFile.open(filename, ios::out);
 	if(!NewQuizFile)
 	{
-		ShowText("«Ø¥ßÀÉ®×®Éµo¥Í°İÃD¡I\n\n", "Setup File cannot be built!\n\n");
+		ShowText("å»ºç«‹æª”æ¡ˆæ™‚ç™¼ç”Ÿå•é¡Œï¼\n\n", "Setup File cannot be built!\n\n");
 		getch();
 		return;
 	}
@@ -671,7 +674,7 @@ void CreateNewLib()
 void EditOnMenu(char Menu[][MAXLINE], int total)
 {
 	ProgrammeTitle();
-	ShowText("±q¿ï³æ¤¤¿ï¾Ü­n½s¿èªºÀÉ®×¡G", "Select which you want to edit on Menu:");
+	ShowText("å¾é¸å–®ä¸­é¸æ“‡è¦ç·¨è¼¯çš„æª”æ¡ˆï¼š", "Select which you want to edit on Menu:");
 	
 	MENU *menu = new MENU();
 	int choose;
@@ -703,19 +706,19 @@ void txtToqz(char *filename)	//transfer the ex-filename from txt to qz
 	char comrename[80] = "\"";	//command rename prompt
 	
 	ChangeColour(7);
-	ShowText("¦b·s¼W¸ê®Æ®w®É¡A½Ğ¨Ì·Ó³W«h¡G\n\n",
+	ShowText("åœ¨æ–°å¢è³‡æ–™åº«æ™‚ï¼Œè«‹ä¾ç…§è¦å‰‡ï¼š\n\n",
 	 "\n\nWhile adding the new Quiz Library, please follow the rule:\n\n");
 	ChangeColour(15);
-	ShowText("­^¤å³æ¦r(µª®×)=¤¤¤å³æ¦r(ÃD¥Ø)\n\n",
+	ShowText("è‹±æ–‡å–®å­—(ç­”æ¡ˆ)=ä¸­æ–‡å–®å­—(é¡Œç›®)\n\n",
 	 "English Words(Answer)=Chinese(Question)\n\n");
-	ShowText("½Ğ¨Ï¥Î¦r¤¸¡G= ±N¨âªÌ¤À³Î\n",
+	ShowText("è«‹ä½¿ç”¨å­—å…ƒï¼š= å°‡å…©è€…åˆ†å‰²\n",
 	 "Please use the character = to seperate the answer and the question\n");
-	ShowText("Á|¨Ò¡G\n\n", "For Example:\n\n");
-	cout << "happy=n.§Ö¼Öªº\n\n";
-	ShowText("ÃD¥Ø±N·|ªø³o¼Ë¡G\n\n", "The Quiz would look like:\n\n");
-	cout << "1. n.§Ö¼Öªº, 5 characters: _____\n\n";
+	ShowText("èˆ‰ä¾‹ï¼š\n\n", "For Example:\n\n");
+	cout << "happy=n.å¿«æ¨‚çš„\n\n";
+	ShowText("é¡Œç›®å°‡æœƒé•·é€™æ¨£ï¼š\n\n", "The Quiz would look like:\n\n");
+	cout << "1. n.å¿«æ¨‚çš„, 5 characters: _____\n\n";
 	ChangeColour(13);
-	ShowText("§¹¦¨ÃD¥Ø«á½ĞÀx¦s¨ÃÃö³¬°O¨Æ¥»¡Aµ{¦¡±N·|Ä~Äò°õ¦æ...",
+	ShowText("å®Œæˆé¡Œç›®å¾Œè«‹å„²å­˜ä¸¦é—œé–‰è¨˜äº‹æœ¬ï¼Œç¨‹å¼å°‡æœƒç¹¼çºŒåŸ·è¡Œ...",
 	 "After completed to build the library, please save and close Notepad.\n"
 	 "The programme would run automatically...");
 	ChangeColour(7);
@@ -742,7 +745,7 @@ void DeleteOnMenu(char Menu[][MAXLINE], int chosen, int total)
 	MenuFile.open("[Quiz].qrc", ios::out);
 	if(!MenuFile)
 	{
-		ShowText("ÀÉ®×µLªk«Ø¥ß¡I", "The file cannot be built!");
+		ShowText("æª”æ¡ˆç„¡æ³•å»ºç«‹ï¼", "The file cannot be built!");
 		getch();
 		return;
 	}
@@ -800,7 +803,7 @@ void FileNameToMenu(char *filename)
 	MenuInput.open("[Quiz].qrc", ios::in);
 	if(!MenuInput)
 	{
-		ShowText("ÀÉ®×¤£¦s¦b¡I", "The file is not exist");
+		ShowText("æª”æ¡ˆä¸å­˜åœ¨ï¼", "The file is not exist");
 		getch();
 		return;
 	}
@@ -824,7 +827,7 @@ void FileNameToMenu(char *filename)
 		OutputMenu.open("[Quiz].qrc", ios::out);
 		if(!OutputMenu)
 		{
-			ShowText("ÀÉ®×µLªk«Ø¥ß¡I", "Menu Cannot be established!");
+			ShowText("æª”æ¡ˆç„¡æ³•å»ºç«‹ï¼", "Menu Cannot be established!");
 		}
 		else
 		{
@@ -846,7 +849,7 @@ void FileNameToMenu(char *filename)
 
 void BreakOrder(char EN[][MAXLINE], char CH[][MAXLINE], int total)
 {	//Break the original order
-	ShowText("\n¥¿¦b¥´¶Ã¶¶§Ç...", "\nBreaking the original order...");
+	ShowText("\næ­£åœ¨æ‰“äº‚é †åº...", "\nBreaking the original order...");
 
 	unsigned int seed = (unsigned)time(NULL);
 	char linebuffer[MAXLINE];
@@ -870,7 +873,7 @@ void BreakOrder(char EN[][MAXLINE], char CH[][MAXLINE], int total)
 			//exchange two questions' order
 		}
 	}
-	ShowText("§¹¦¨\n\n", "Done\n\n");
+	ShowText("å®Œæˆ\n\n", "Done\n\n");
 }
 
 void StartTesting(char Answer[][MAXLINE], char Question[][MAXLINE],
@@ -883,7 +886,7 @@ void StartTesting(char Answer[][MAXLINE], char Question[][MAXLINE],
 	float result;
 
 ReStart:
-	ShowText("½Ğ¿é¤J±z·Q­n´úÅçªºÃD¼Æ (¿é¤J * ¥Nªí¥ş³¡) ",
+	ShowText("è«‹è¼¸å…¥æ‚¨æƒ³è¦æ¸¬é©—çš„é¡Œæ•¸ (è¼¸å…¥ * ä»£è¡¨å…¨éƒ¨) ",
 	 "Please enter how much questions you want to answer (enter * represents ALL) ");
 	cout << "(<= " << total << "): ";
 	fflush(stdin);
@@ -901,17 +904,17 @@ ReStart:
 	for(int i = 0; i < choosenum; i++)
 	{
 		cout << (i + 1) << ". " << Question[i] << " , " << strlen(Answer[i]);
-		ShowText(" ­Ó¦r¥À: ", " characters: ");
+		ShowText(" å€‹å­—æ¯: ", " characters: ");
 		EnteringAnswer(strlen(Answer[i]), buffer);
 		if(strcmp(buffer, Answer[i]) == 0)	//compare the input and the answer
 		{							//if the two are identical
 			ChangeColour(10);
-			ShowText("\n®¥³ß±z µª¹ï¤F¡I\n\n", "\nCongratulation! Correct answer!\n\n");
+			ShowText("\næ­å–œæ‚¨ ç­”å°äº†ï¼\n\n", "\nCongratulation! Correct answer!\n\n");
 		}
 		else						//Wrong
 		{
 			ChangeColour(12);
-			ShowText("\nµª¿ù¤F¡I¥¿½Tµª®×¬O¡G", "\nIncorrect! Correct answer is: ");
+			ShowText("\nç­”éŒ¯äº†ï¼æ­£ç¢ºç­”æ¡ˆæ˜¯ï¼š", "\nIncorrect! Correct answer is: ");
 			ChangeColour(10);
 			cout << Answer[i] << endl << endl;
 
@@ -920,7 +923,7 @@ ReStart:
 		ChangeColour(7);
 	}
 
-	ShowText("¥»¦¸´úÅçªº¥¿½T²v¬°¡G", "The correctness ratio of this quiz is: ");
+	ShowText("æœ¬æ¬¡æ¸¬é©—çš„æ­£ç¢ºç‡ç‚ºï¼š", "The correctness ratio of this quiz is: ");
 	result = ((float)choosenum - (float)wrong) / (float)choosenum * 100;
 	cout << result << "%" << endl << endl;
 
@@ -1078,14 +1081,14 @@ void EAInit(int numbers)
 void AddToHistory(char En[][MAXLINE], char Ch[][MAXLINE],
 	short int WrongRecord[], int total)
 {
-	ShowText("¥¿¦b±N¿ù»~¦s¤J¾ú¥vÀÉ®×...", "Saving the incorrect answer to History file...");
+	ShowText("æ­£åœ¨å°‡éŒ¯èª¤å­˜å…¥æ­·å²æª”æ¡ˆ...", "Saving the incorrect answer to History file...");
 	
 	fstream HisOutput;
 	int HisEmpty = EmptyFile("[History].qzc");
 	HisOutput.open("[History].qzc", ios::out | ios::app);
 	if(!HisOutput)
 	{
-		ShowText("¾ú¥vÀÉ®×µLªk¶}±Ò¡I\n", "History file failed to open!\n");
+		ShowText("æ­·å²æª”æ¡ˆç„¡æ³•é–‹å•Ÿï¼\n", "History file failed to open!\n");
 		getch();
 		return;
 	}
@@ -1099,12 +1102,12 @@ void AddToHistory(char En[][MAXLINE], char Ch[][MAXLINE],
 	}
 	HisOutput.close();
 	
-	ShowText("§¹¦¨¡I\n\n", "Done\n\n");
+	ShowText("å®Œæˆï¼\n\n", "Done\n\n");
 }
 
 void RefreshHistory()
 {
-	ShowText("¥¿¦b¾ã²z¾ú¥vÀÉ®×...", "Refreshing History file...");
+	ShowText("æ­£åœ¨æ•´ç†æ­·å²æª”æ¡ˆ...", "Refreshing History file...");
 	
 	fstream HisFile;
 	char buffer[MAXVALUE][2 * MAXLINE];
@@ -1140,13 +1143,13 @@ void RefreshHistory()
 			HisFile << buffer[i] << endl;
 	}
 	HisFile.close();
-	ShowText("§¹¦¨¡I\n\n", "Done\n\n");
+	ShowText("å®Œæˆï¼\n\n", "Done\n\n");
 }
 
 void RebuildHistory(char En[][MAXLINE], char Ch[][MAXLINE],
 	short int WrongRecord[], int total)
 {
-	ShowText("¥¿¦b­«·s«Ø¥ß¾ú¥vÀÉ®×...", "Rebuilding History file...");
+	ShowText("æ­£åœ¨é‡æ–°å»ºç«‹æ­·å²æª”æ¡ˆ...", "Rebuilding History file...");
 	
 	fstream HistOut;
 	HistOut.open("[History].qzc", ios::out);
@@ -1162,5 +1165,5 @@ void RebuildHistory(char En[][MAXLINE], char Ch[][MAXLINE],
 		}
 	}
 	HistOut.close();
-	ShowText("§¹¦¨¡I\n\n", "Done\n\n");
+	ShowText("å®Œæˆï¼\n\n", "Done\n\n");
 }
