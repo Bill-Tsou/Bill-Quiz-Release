@@ -49,10 +49,10 @@ void ShowText(const char *CH, const char *EN)
 void ProgrammeTitle()
 {
 	system("cls");		//clear the console interface
-	ChangeColour(14);
+	ChangeColour(COLOR_LIGHT_YELLOW);
 	ShowText("Quiz - 中英文單字測驗\n\n",
 	 "Quiz - Test for Chinese, English Translation\n\n");
-	ChangeColour(7);
+	ChangeColour(COLOR_NORMAL);
 }
 
 int ReadSetup()
@@ -66,7 +66,7 @@ int ReadSetup()
 		Setup.open("[Quiz].set", ios::out);
 		if(!Setup)	//if the [Quiz].set file doesn't exist, build a new one
 		{
-			ChangeColour(12);
+			ChangeColour(COLOR_LIGHT_RED);
 			ShowText("建立檔案時出現問題",
 			 "There\'s some problems while building setup file!");
 			getch();
@@ -98,7 +98,7 @@ int GetTheMenu(char MenuContext[][MAXLINE])
 		QuizMenu.open("[Quiz].qrc", ios::out);
 		if(!QuizMenu)
 		{
-			ChangeColour(12);
+			ChangeColour(COLOR_LIGHT_RED);
 			ShowText("建立檔案時出現問題",
 			 "There\'s some problems while building setup file!");
 			getch();
@@ -173,7 +173,7 @@ int ReadQuestion(char Answer[][MAXLINE], char Question[][MAXLINE], char *filenam
 void About()
 {
 	ProgrammeTitle(); 
-	ChangeColour(10);	//change to colour green
+	ChangeColour(COLOR_LIGHT_GREEN);	//change to colour green
 	
 	ShowText("此程式致力於加強 PVQC 第一部分\n",
 	 "This programme is dedicated to improving the first part of PVQC\n");
@@ -188,10 +188,10 @@ void About()
 	//Show Common Creatives Dialog
 	ShowCreativeCommonsDialog();
 	
-	ChangeColour(11);
+	ChangeColour(COLOR_LIGHT_BLUE);
 	ShowText("按下任意鍵返回...", "Press any key to back to Menu...");
 	getch();
-	ChangeColour(7);	//change to the original colour
+	ChangeColour(COLOR_NORMAL);	//change to the original colour
 }
 
 void EnterSetup()
@@ -450,10 +450,10 @@ void txtToqz(char *filename)	//transfer the ex-filename from txt to qz
 {
 	char comrename[80] = "\"";	//command rename prompt
 	
-	ChangeColour(7);
+	ChangeColour(COLOR_NORMAL);
 	ShowText("在新增資料庫時，請依照規則：\n\n",
 	 "\n\nWhile adding the new Quiz Library, please follow the rule:\n\n");
-	ChangeColour(15);
+	ChangeColour(COLOR_WHITE);
 	ShowText("英文單字(答案)=中文單字(題目)\n\n",
 	 "English Words(Answer)=Chinese(Question)\n\n");
 	ShowText("請使用字元：= 將兩者分割\n",
@@ -462,11 +462,11 @@ void txtToqz(char *filename)	//transfer the ex-filename from txt to qz
 	cout << "happy=n.快樂的\n\n";
 	ShowText("題目將會長這樣：\n\n", "The Quiz would look like:\n\n");
 	cout << "1. n.快樂的, 5 characters: _____\n\n";
-	ChangeColour(13);
+	ChangeColour(COLOR_PURPLE);
 	ShowText("完成題目後請儲存並關閉記事本，程式將會繼續執行...",
 	 "After completed to build the library, please save and close Notepad.\n"
 	 "The programme would run automatically...");
-	ChangeColour(7);
+	ChangeColour(COLOR_NORMAL);
 	
 	strcat(comrename, filename);
 	strcat(comrename, "\"");
@@ -653,19 +653,19 @@ ReStart:
 		EnteringAnswer(strlen(Answer[i]), buffer);
 		if(strcmp(buffer, Answer[i]) == 0)	//compare the input and the answer
 		{							//if the two are identical
-			ChangeColour(10);
+			ChangeColour(COLOR_LIGHT_GREEN);
 			ShowText("\n恭喜您 答對了！\n\n", "\nCongratulation! Correct answer!\n\n");
 		}
 		else						//Wrong
 		{
-			ChangeColour(12);
+			ChangeColour(COLOR_LIGHT_RED);
 			ShowText("\n答錯了！正確答案是：", "\nIncorrect! Correct answer is: ");
-			ChangeColour(10);
+			ChangeColour(COLOR_LIGHT_GREEN);
 			cout << Answer[i] << endl << endl;
 
 			WrongRecord[wrong++] = i;	//record the question number
 		}
-		ChangeColour(7);
+		ChangeColour(COLOR_NORMAL);
 	}
 
 	ShowText("本次測驗的正確率為：", "The correctness ratio of this quiz is: ");

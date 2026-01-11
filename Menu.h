@@ -4,6 +4,25 @@
 #ifndef _MENU_H
 #define _MENU_H
 
+// Colours for ChangeColour()
+enum color{
+	COLOR_DARK_BLUE = 1,
+	COLOR_DARK_GREEN,
+	COLOR_FADED_BLUE,
+	COLOR_DARK_RED,
+	COLOR_DARK_PURPLE,
+	COLOR_BROWN,
+	COLOR_NORMAL,		// default console text color
+	COLOR_GRAY,
+	COLOR_SKY_BLUE,
+	COLOR_LIGHT_GREEN,
+	COLOR_LIGHT_BLUE,
+	COLOR_LIGHT_RED,	// error message
+	COLOR_PURPLE,
+	COLOR_LIGHT_YELLOW,
+	COLOR_WHITE
+};
+
 #define MAXVALUE 100
 #define MAXLINE 1024		//the max characters of one line can contain
 #define ESCAPE 1001			//key esc

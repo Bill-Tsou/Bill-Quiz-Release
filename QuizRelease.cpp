@@ -87,9 +87,9 @@ Start:
 			SearchOnMenu();
 		else						//If the menu file is not empty or does not exist
 		{
-			ChangeColour(14);
+			ChangeColour(COLOR_LIGHT_YELLOW);
 			ShowText("\n選單是空的！沒有辦法從選單中搜尋關鍵字\n", "\nMenu is empty! Cannot search from Menu\n");
-			ChangeColour(7);
+			ChangeColour(COLOR_NORMAL);
 			getch();
 		}
 		goto Start;
@@ -105,9 +105,9 @@ Start:
 			EditOnMenu(Answer, total - Functions - 1);
 		else
 		{
-			ChangeColour(14);
+			ChangeColour(COLOR_LIGHT_YELLOW);
 			ShowText("\n選單中沒有選項可供編輯...\n", "\nThere is no file on Menu to edit...\n");
-			ChangeColour(7);
+			ChangeColour(COLOR_NORMAL);
 			getch();
 		}
 		goto Start;
@@ -125,7 +125,7 @@ Start:
 	else if(chosen == total - 2)	//Clear data in history file
 	{
 		cout << endl;
-		ChangeColour(13);
+		ChangeColour(COLOR_PURPLE);
 		ShowText("Quiz 將會把歷史檔案的資料全部清除\n",
 			"Quiz will clear all the data in History file\n");
 		ShowText("您確定要這樣做嗎？(y/n): ",
@@ -139,7 +139,7 @@ Start:
 			file.open("[History].qzc", ios::out);
 			if(!file)
 			{
-				ChangeColour(15); 
+				ChangeColour(COLOR_WHITE);
 				ShowText("建立檔案時發生問題！", "Error when building History file");
 				getch();
 			}
@@ -155,7 +155,7 @@ Start:
 		total = ReadQuestion(Answer, Question, "[History].qzc");
 		if(total == 0)
 		{
-			ChangeColour(14);
+			ChangeColour(COLOR_LIGHT_YELLOW);
 			ShowText("所有的錯誤已被清除！\n\n",
 			 "All of the past incorrect questions have been eliminated!\n\n");
 			getch();
@@ -186,7 +186,7 @@ Start:
 		total = ReadQuestion(Answer, Question, Answer[chosen]);	//Read the file
 		if(total == 0)
 		{
-			ChangeColour(15);
+			ChangeColour(COLOR_LIGHT_YELLOW);
 			ShowText("檔案中沒有任何有效資料...", "No valid library...");
 			getch();
 			goto Start;

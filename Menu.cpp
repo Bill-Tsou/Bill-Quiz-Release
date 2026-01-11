@@ -66,7 +66,7 @@ int MENU::StartChoose(int pass)
 		key = getch();
 		if(key == 27)
 		{
-			ChangeColour(7);
+			ChangeColour(COLOR_NORMAL);
 			return ESCAPE;
 		}
 		else if(key == 224)				//directional keys
