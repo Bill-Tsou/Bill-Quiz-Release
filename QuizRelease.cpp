@@ -14,7 +14,8 @@ int Programme_Language = English;
 
 int main()
 {
-	int total, chosen, passchoose = 0;
+	int total = 0, chosen = 0, passchoose = 0, dir_file_cnt = 0, function_cnt = 0;
+	char current_dir[MAX_PATH] = {0}; // path of database list
 	char Answer[MAXVALUE][MAXLINE], Question[MAXVALUE][MAXLINE];
 
     // Set the console output code page to UTF-8 to fix display error on Windows 11
@@ -22,66 +23,89 @@ int main()
 
 	RegisterCreativeCommonsDialog();	//register dialog class only once
 
+	// initialize current directory
+	strncpy(current_dir, PATH_DATABASE, sizeof(current_dir));
+
 Start:
 	MENU *menu = new MENU();
-	ReadSetup();
 	system("cls");					//clear everything on the console window
 	ProgrammeTitle();				//show the programme title
-	
-	ShowText("從選單中選擇測驗或功能 (Delete 刪除選單中的檔案)：",
-	 "Select the quiz or functionality from Menu (Delete to remove the file on Menu):");
-	total = GetTheMenu(Answer);		//use Answer as buffer to store the menu info
-	//total to calculate how much lines are in the file
-	if(total == ERROR_CODE)	//the menu file has just built up, restart the programme
+
+	if(menu == NULL) {
+		ChangeColour(COLOR_LIGHT_RED);
+		ShowText("沒有足夠的記憶體建立選單!\n", "There is no enough memory for creating Menu\n");
+		ChangeColour(COLOR_NORMAL);
+		system("pause");
+		return EXIT_FAILURE;
+	}
+
+	ReadSetup();
+
+	// get directory and files list
+	dir_file_cnt = GetDirMenu(current_dir, Answer);
+	if(dir_file_cnt == ERROR_CODE)
 	{
 		delete menu;
-		goto Start;
+		system("pause");
+		return EXIT_FAILURE;
 	}
-	if(EmptyFile("[Quiz].qrc") == 0)//if the menu file is not empty
-		strcpy(Answer[total], "*BLOCK*");
-	else
-		total = -1;
-	if(Programme_Language == Chinese)
+
+	// append functional options
+	function_cnt = GetMenuFunctions(Answer, dir_file_cnt);	//use Answer as buffer to store the menu info
+	if(function_cnt == ERROR_CODE)
 	{
-		strcpy(Answer[total + 1], " /關於");
-		strcpy(Answer[total + 2], " /語言設定 Language");
-		strcpy(Answer[total + 3], " /搜尋資料庫");
-		strcpy(Answer[total + 4], " /開啟檔案位置");
-		strcpy(Answer[total + 5], " /編輯選單中的檔案");
-		strcpy(Answer[total + 6], " /新增現有檔案到選單");
-		strcpy(Answer[total + 7], " /新增資料庫");
-		strcpy(Answer[total + 8], " /清空歷史檔案");
-		strcpy(Answer[total + 9], " /歷史錯誤練習");
+		delete menu;
+		system("pause");
+		return EXIT_FAILURE;
 	}
-	else
-	{
-		strcpy(Answer[total + 1], " /About this programme");
-		strcpy(Answer[total + 2], " /Language Setup");
-		strcpy(Answer[total + 3], " /Search");
-		strcpy(Answer[total + 4], " /Open Quiz directory");
-		strcpy(Answer[total + 5], " /Edit the file on Menu");
-		strcpy(Answer[total + 6], " /Add the old file to Menu");
-		strcpy(Answer[total + 7], " /Create new library");
-		strcpy(Answer[total + 8], " /Clear History file");
-		strcpy(Answer[total + 9], " /History");
+
+	total = dir_file_cnt + function_cnt;
+
+	if(menu->InitMenu(Answer, function_cnt, total, InitialY) == ERROR_CODE) {
+		ChangeColour(COLOR_LIGHT_RED);
+		ShowText("選單初始化失敗！\n", "Menu Initialization failed!\n");
+		ChangeColour(COLOR_NORMAL);
+
+		delete menu;
+		system("pause");
+		return EXIT_FAILURE;
 	}
-	total = total + Functions + 1;
-	menu->InitMenu(Answer, total, InitialY);
+
+	ShowText("從選單中選擇測驗或功能 (Delete 刪除選單中的檔案)：",
+	 "Select the quiz or functionality from Menu (Delete to remove the file on Menu):");
+
 	chosen = menu->StartChoose(passchoose);
 	delete menu;
 	passchoose = chosen;
 
-	if(chosen == total - 9)			//About the programme
+	if(chosen == ESCAPE) {
+		GotoXY(0, InitialY + total);
+		return EXIT_SUCCESS;
+	}
+
+	switch(chosen - dir_file_cnt)
+	{
+	case USER_FUNC_ABOUT:
 	{
 		About();
 		goto Start;
 	}
-	else if(chosen == total - 8)	//Language Setup
+
+	case USER_FUNC_LANGUAGE:
 	{
-		EnterSetup();
+		EnterLanguageSetup();
 		goto Start;
 	}
-	else if(chosen == total - 7)	//Search
+
+	case USER_FUNC_OPEN_DIRECTORY:
+	{
+		char path_buf[MAX_PATH];
+		snprintf(path_buf, sizeof(path_buf), "explorer \"%s\"", current_dir);
+		system(path_buf);
+		goto Start;
+	}
+
+	case USER_FUNC_LIB_SEARCH:
 	{
 		if(EmptyFile("[Quiz].qrc") == 0)	//If the menu file is not empty
 			SearchOnMenu();
@@ -94,15 +118,11 @@ Start:
 		}
 		goto Start;
 	}
-	else if(chosen == total - 6)	//Start file directory
-	{
-		system("start .");
-		goto Start;
-	}
-	else if(chosen == total - 5)	//Edit the file on menu
+
+	case USER_FUNC_LIB_EDIT:
 	{
 		if(EmptyFile("[Quiz].qrc") == 0)
-			EditOnMenu(Answer, total - Functions - 1);
+			EditOnMenu(Answer, total - MAX_USER_FUNC_COUNT - 1);
 		else
 		{
 			ChangeColour(COLOR_LIGHT_YELLOW);
@@ -112,17 +132,14 @@ Start:
 		}
 		goto Start;
 	}
-	else if(chosen == total - 4)	//Add the old file into the menu
-	{
-		AddOldFile();
-		goto Start;
-	}
-	else if(chosen == total - 3)	//Create new library
+
+	case USER_FUNC_LIB_CREATE:
 	{
 		CreateNewLib();
 		goto Start;
 	}
-	else if(chosen == total - 2)	//Clear data in history file
+
+	case USER_FUNC_HISTORY_CLEAR:
 	{
 		cout << endl;
 		ChangeColour(COLOR_PURPLE);
@@ -150,14 +167,15 @@ Start:
 		}
 		goto Start;
 	}
-	else if(chosen == total - 1)	//History Mode
+
+	case USER_FUNC_HISTORY_PRACTICE:
 	{
 		total = ReadQuestion(Answer, Question, "[History].qzc");
 		if(total == 0)
 		{
 			ChangeColour(COLOR_LIGHT_YELLOW);
 			ShowText("所有的錯誤已被清除！\n\n",
-			 "All of the past incorrect questions have been eliminated!\n\n");
+				"All of the past incorrect questions have been eliminated!\n\n");
 			getch();
 			goto Start;
 		}
@@ -169,19 +187,43 @@ Start:
 		}
 		BreakOrder(Answer, Question, total);
 		StartTesting(Answer, Question, total, true);
-	}
-	else if(chosen == ESCAPE)		//close the window
-	{
-		exit(0);
-	}
-	else if(chosen < 0)				//delete file from the menu
-	{
-		DeleteOnMenu(Answer, (chosen * (-1) - 1), total - Functions - 1);
-		passchoose = chosen * (-1) - 1;
 		goto Start;
 	}
-	else							//Open the file
+
+	default:
+
+		// to check whether the selected item is directory
+		if (Answer[chosen][strlen(Answer[chosen]) - 1] == '\\') {
+			// get rid the the last character
+			Answer[chosen][strlen(Answer[chosen]) - 1] = '\0';
+
+			// is directory, check if it is previous directory
+			if (strcmp(Answer[chosen], "..") == 0) {
+				// go to previous directory
+				char *last_backslash = strrchr(current_dir, '\\');
+				if (last_backslash != NULL) {
+					*last_backslash = '\0'; // truncate to previous directory
+				}
+				else {
+					// back to root directory
+					strncpy(current_dir, PATH_DATABASE, sizeof(current_dir));
+				}
+			} else {
+				// go to selected sub-directory
+				snprintf(current_dir, sizeof(current_dir), "%s\\%s", current_dir, Answer[chosen]);
+			}
+			// enter different direcctory with initial cursor position
+			passchoose = 0;
+			goto Start;
+		}
+
+		break;
+	}
+
 	{
+		//let the cursor move to the bottom of the menu
+		GotoXY(0, InitialY + total);
+
 		strcat(Answer[chosen], ".qz");	//add the filename-ex from the menu that have chosen
 		total = ReadQuestion(Answer, Question, Answer[chosen]);	//Read the file
 		if(total == 0)
@@ -210,5 +252,6 @@ Start:
 			break;
 		cout << endl << endl;
 	}while(1);
-	return 0;
+
+	return EXIT_SUCCESS;
 }

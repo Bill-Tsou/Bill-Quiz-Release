@@ -9,12 +9,6 @@ using namespace std;
 extern int Programme_Language;
 const char split[10] = "=";
 
-void ChangeColour(int colour)
-{
-	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-	SetConsoleTextAttribute(hConsole, colour);
-}
-
 int EmptyFile(char *filename)
 {
 	fstream File;
@@ -87,35 +81,126 @@ int ReadSetup()
 	}
 }
 
-int GetTheMenu(char MenuContext[][MAXLINE])
+int ListPathFiles(const char *current_dir, char MenuContext[][MAXLINE], int menu_start_idx, bool list_dir)
 {
-	fstream QuizMenu;
+	WIN32_FIND_DATAA findFileData;
+	HANDLE findHandle;
+	char searchPath[MAX_PATH];
 	int number = 0;
-	QuizMenu.open("[Quiz].qrc", ios::in);
-	if(!QuizMenu)
-	{
-		QuizMenu.close();
-		QuizMenu.open("[Quiz].qrc", ios::out);
-		if(!QuizMenu)
-		{
+
+    // Create search pattern
+	snprintf(searchPath, MAX_PATH, "%s\\*", current_dir);
+
+	for(int i = 0; i < 2; i++) {
+		findHandle = FindFirstFileA(searchPath, &findFileData);
+
+		if (findHandle == INVALID_HANDLE_VALUE) {
+
+			if (i == 0) {
+				// try to create folder
+				if (CreateDirectoryA(current_dir, NULL)) {
+					FindClose(findHandle);
+					continue;	// try again to open the created directory
+				}
+			}
+
 			ChangeColour(COLOR_LIGHT_RED);
-			ShowText("建立檔案時出現問題",
-			 "There\'s some problems while building setup file!");
-			getch();
-			exit(0);
+			ShowText("錯誤：無法開啟資料夾 ", "Error: Cannot open folder ");
+			cout << current_dir << endl;
+			ChangeColour(COLOR_NORMAL);
+			return ERROR_CODE;
 		}
-		return ERROR_CODE;		//there is no any info in the menu file
-	}
-	else
-	{
-		while(!QuizMenu.eof())
-		{
-			QuizMenu.getline(MenuContext[number], sizeof(MenuContext[number]));
-			number += 1;
+		else {
+			break;
 		}
-		QuizMenu.close();
 	}
+
+	do {
+		// Skip "."
+		if (strcmp(findFileData.cFileName, ".") != 0) {
+
+			if (list_dir) {
+				if (findFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+					// list ".." only when not in root directory
+					if (strcmp(current_dir, PATH_DATABASE) == 0 &&
+						strcmp(findFileData.cFileName, "..") == 0) {
+						continue;
+					}
+					snprintf(MenuContext[menu_start_idx + number], MAXLINE, "%s\\", findFileData.cFileName);
+					number += 1;
+				}
+				else {
+					// skip non-directory filenames
+					continue;
+				}
+			} else if (findFileData.dwFileAttributes & FILE_ATTRIBUTE_ARCHIVE) {
+				snprintf(MenuContext[menu_start_idx + number], MAXLINE, "%s", findFileData.cFileName);
+				number += 1;
+			}
+		}
+	} while (FindNextFileA(findHandle, &findFileData));
+
+	FindClose(findHandle);
+
+	return number;
+}
+
+int GetDirMenu(const char *current_dir, char MenuContext[][MAXLINE])
+{
+	int number = 0, list_num = 0;
+
+	// list directory first
+	list_num = ListPathFiles(current_dir, MenuContext, number, true);
+	if(list_num == ERROR_CODE) {
+		// error for the directory failed to open
+		return ERROR_CODE;
+	}
+	number += list_num;
+
+	if (number > 0)
+		strncpy(MenuContext[number++], MENU_EMPTY_BLOCK_OPT, MAXLINE);
+
+	// list other files
+	list_num = ListPathFiles(current_dir, MenuContext, number);
+	if(list_num == ERROR_CODE) {
+		// error for the directory failed to open
+		return ERROR_CODE;
+	}
+	number += list_num;
+
+	// add an empty block before function options
+	strncpy(MenuContext[number++], MENU_EMPTY_BLOCK_OPT, MAXLINE);
+
 	return number;		//return the number of the total menus
+}
+
+int GetMenuFunctions(char MenuContext[][MAXLINE], int menu_start_idx)
+{
+	const char *menu_opt = NULL;
+
+	switch(Programme_Language)
+	{
+		case Chinese:
+			menu_opt = &Func_Menu_Chinese[0][0];
+			break;
+
+		case English:
+			menu_opt = &Func_Menu_English[0][0];
+			break;
+	}
+
+	if(menu_opt == NULL) {
+		ChangeColour(COLOR_LIGHT_RED);
+		cout << "Error occurred while generating menu function options!" << endl;
+		ChangeColour(COLOR_NORMAL);
+		return ERROR_CODE;
+	}
+
+	for (int i = 0; i < MAX_USER_FUNC_COUNT; i++) {
+		strncpy(MenuContext[menu_start_idx + i], (menu_opt + i * MAXLINE), MAXLINE);
+	}
+
+	return MAX_USER_FUNC_COUNT;
 }
 
 int ReadQuestion(char Answer[][MAXLINE], char Question[][MAXLINE], char *filename)
@@ -194,16 +279,16 @@ void About()
 	ChangeColour(COLOR_NORMAL);	//change to the original colour
 }
 
-void EnterSetup()
+void EnterLanguageSetup()
 {
 	ProgrammeTitle();	//show the title on the top of the programme
 	MENU *menu = new MENU();
 	
 	ShowText("請選擇語言：", "Please select the language:");
-	char items[3][MAXLINE] = {"繁體中文", "English"};
+	char items[][MAXLINE] = {"繁體中文", "English"};
 	int selectnum = 0;
 	
-	menu->InitMenu(items, 2, InitialY);
+	menu->InitMenu(items, 0, 2, InitialY);
 	selectnum = menu->StartChoose(0);	//start to choose from menu
 	delete menu;
 	
@@ -211,7 +296,9 @@ void EnterSetup()
 	SetupOutput.open("[Quiz].set", ios::out);
 	if(!SetupOutput)
 	{
+		ChangeColour(COLOR_LIGHT_RED);
 		ShowText("建立檔案時發生問題！\n\n", "Setup File cannot be built!\n\n");
+		ChangeColour(COLOR_NORMAL);
 		getch();
 		return;
 	}
@@ -424,7 +511,7 @@ void EditOnMenu(char Menu[][MAXLINE], int total)
 	MENU *menu = new MENU();
 	int choose;
 	char comrename[80] = "rename \"";
-	menu->InitMenu(Menu, total, InitialY, 7, 164);
+	menu->InitMenu(Menu, 0, total, InitialY, 7, 164);
 	do
 	{
 		choose = menu->StartChoose(0);

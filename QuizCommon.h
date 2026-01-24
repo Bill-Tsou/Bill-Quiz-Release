@@ -10,12 +10,49 @@
 
 /* ==== definitions ==== */
 #define InitialY 4		//define how many lines of the title of the programme would occupy
+#define PATH_DATABASE "database"	// init database path
+
+/* ======== */
+
+/* ==== functions menu list ==== */
+enum UserFunctions {
+	USER_FUNC_HISTORY_PRACTICE = 0,
+	USER_FUNC_OPEN_DIRECTORY,
+	USER_FUNC_LIB_CREATE,
+	USER_FUNC_LIB_EDIT,
+	USER_FUNC_LIB_SEARCH,
+	USER_FUNC_HISTORY_CLEAR,
+	USER_FUNC_LANGUAGE,
+	USER_FUNC_ABOUT,
+
+	MAX_USER_FUNC_COUNT
+};
+
+const char Func_Menu_Chinese[][MAXLINE] = {
+	" /歷史錯誤練習",
+	" /開啟目前資料庫位置",
+	" /新增資料庫",
+	" /編輯資料庫",
+	" /搜尋資料庫",
+	" /清空歷史檔案",
+	" /語言設定 Language",
+	" /關於"
+};
+
+const char Func_Menu_English[][MAXLINE] = {
+	" /History Practice",
+	" /Open Directory of Current Library",
+	" /Create New Library",
+	" /Edit Library",
+	" /Search in Library",
+	" /Clear History File",
+	" /Language Setup",
+	" /About this Programme"
+};
 
 /* ======== */
 
 /* ==== function prototypes ==== */
-//standard change console colour function
-void ChangeColour(int colour);
 //show the title on the top of the programme
 void ProgrammeTitle();
 //determine whether or not the file is empty
@@ -23,12 +60,14 @@ int EmptyFile(char*);
 
 //Information collection
 int ReadSetup();			//read which language is the programme saved
-int GetTheMenu(char[][MAXLINE]);
+int ListPathFiles(const char *current_dir, char MenuContext[][MAXLINE], int menu_start_idx, bool list_dir = false);
+int GetDirMenu(const char *current_dir, char MenuContext[][MAXLINE]);
+int GetMenuFunctions(char MenuContext[][MAXLINE], int menu_start_idx);
 int ReadQuestion(char[][MAXLINE], char[][MAXLINE], char*);
 						//open the quiz file(.qz) and return the total questions number
 
 //Functions on the menu
-void EnterSetup();			//modify the language or menu file
+void EnterLanguageSetup();			//modify the language or menu file
 void SearchOnMenu();		//show the result of any words that contains the key words
 void CreateNewLib();		//create the new quiz file(.qz)
 void AddOldFile();			//add the old file into the menu

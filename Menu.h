@@ -23,16 +23,31 @@ enum color{
 	COLOR_WHITE
 };
 
+enum blockLimDir{
+	BLOCK_DIR_LIMIT_UP,
+	BLOCK_DIR_LIMIT_DOWN
+};
+
 #define MAXVALUE 100
 #define MAXLINE 1024		//the max characters of one line can contain
 #define ESCAPE 1001			//key esc
 #define ERROR_CODE -1001	//error return code
-#define Functions 9			//there are 9 functions on menu which connot be deleted
+
+// empty gap display on menu
+#define MENU_EMPTY_BLOCK_OPT "*BLOCK*"
+
+/* ==== function prototypes ==== */
+// general Windows API
+void ChangeColour(int colour);
+void GotoXY(int x, int y);
+
+/* ======== */
+
 class MENU
 {
 	public:
 		MENU();
-		int InitMenu(char[][MAXLINE], int, int = 0, int = 7, int = 31);
+		int InitMenu(char[][MAXLINE], int func_num, int total, int inity = 0, int unchoose = 7, int choose = 31);
 		//menu context, total context num, init y coord, unchoose colour, choose colour
 		//it is very useful to use *BLOCK* to represent nothing in one line
 		virtual ~MENU();
@@ -42,13 +57,13 @@ class MENU
 	private:
 		char MenuContext[MAXVALUE][MAXLINE];
 		int Inity;
+		int func_num;
 		int total_ContextNumber;
 		short int initcoordy;
 		unsigned char unchoose_colour;
 		unsigned char choose_colour;
-		void ChangeColour(int);
-		void GotoXY(int, int);
 		void ShowContext();
+		void CheckBlockLimit(blockLimDir dir, int *cur_choosenum);
 };
 
 #endif 

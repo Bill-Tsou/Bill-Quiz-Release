@@ -6,19 +6,47 @@
 
 using namespace std;
 
+void ChangeColour(int colour)
+{	//standard function to change the colour which will show the following time
+	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	SetConsoleTextAttribute(hConsole, colour);
+}
+
+void GotoXY(int x, int y)
+{	//standard function use to let the cursor goto the coordinate (x,y)
+	COORD pos = {x, y};
+	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	SetConsoleCursorPosition(hConsole, pos);
+}
+
 MENU::MENU()
 {	//nothing to do in the constructor because all the data should be initialize in
 	//the function InitMenu
 }
 
-int MENU::InitMenu(char context[][MAXLINE], int total, int inity, int unchoose, int choose)
+int MENU::InitMenu(char context[][MAXLINE], int func_num, int total, int inity, int unchoose, int choose)
 {	//Error code -1
+	
+	if(func_num >= 0)
+		this->func_num = func_num;
+	else
+		return ERROR_CODE;
+
 	if(total > 0 && total < MAXVALUE)
 	{
+		bool check_all_block = true;
 		total_ContextNumber = total;
 		for(int i = 0; i < total_ContextNumber; i++)
 		{
 			strcpy(MenuContext[i], context[i]);
+			if (check_all_block && strcmp(MenuContext[i], MENU_EMPTY_BLOCK_OPT) != 0)
+				check_all_block = false;
+		}
+		if (check_all_block) {
+			ChangeColour(COLOR_LIGHT_RED);
+			cout << "InitMenu(): All menu items are BLOCK, no valid menu to display." << endl;
+			ChangeColour(COLOR_NORMAL);
+			return ERROR_CODE;
 		}
 	}
 	else
@@ -53,8 +81,14 @@ int MENU::StartChoose(int pass)
 	GotoXY(0, Inity);
 	ChangeColour(unchoose_colour);
 	ShowContext();
-	GotoXY(0, Inity + pass);
 	ChangeColour(choose_colour);
+
+	// check if the passing argument is BLOCK
+	if(strcmp(MenuContext[pass], MENU_EMPTY_BLOCK_OPT) == 0) {
+		pass += 1;		//skip the BLOCK
+	}
+
+	GotoXY(0, Inity + pass);
 	cout << MenuContext[pass];
 	
 	//then, begin the function to choose
@@ -81,8 +115,7 @@ int MENU::StartChoose(int pass)
 				if(choosenum < 0)
 					choosenum = total_ContextNumber - 1;
 
-				if(strcmp(MenuContext[choosenum], "*BLOCK*") == 0)
-					choosenum -= 1;		//crossover the BLOCK
+				CheckBlockLimit(BLOCK_DIR_LIMIT_UP, &choosenum);
 			}
 			else if(key == 80)			//key down
 			{
@@ -90,14 +123,22 @@ int MENU::StartChoose(int pass)
 				if(choosenum > total_ContextNumber - 1)
 					choosenum = 0;
 
-				if(strcmp(MenuContext[choosenum], "*BLOCK*") == 0)
-					choosenum += 1;		//crossover the BLOCK
+				CheckBlockLimit(BLOCK_DIR_LIMIT_DOWN, &choosenum);
 			}
 			else if(key == 75)			//key left
+			{
 				choosenum = 0;
+				CheckBlockLimit(BLOCK_DIR_LIMIT_DOWN, &choosenum);
+			}
 			else if(key == 77)			//key right
-				choosenum = total_ContextNumber - 1;
-			else if(key == 83 && choosenum < total_ContextNumber - Functions)
+			{
+				choosenum = total_ContextNumber - func_num - 1;
+				if(choosenum < 0)
+					choosenum = 0;
+
+				CheckBlockLimit(BLOCK_DIR_LIMIT_UP, &choosenum);
+			}
+			else if(key == 83 && choosenum < total_ContextNumber - func_num)
 			{	//delete file on the programme
 				//remember the functional like //history cannot be deleted!
 				return (choosenum * (-1) - 1);	//return the negative chosen number - 1
@@ -108,36 +149,47 @@ int MENU::StartChoose(int pass)
 			cout << MenuContext[choosenum];
 		}
 	}
-	
-	//let the cursor move to the bottom of the menu
-	GotoXY(0, Inity + total_ContextNumber);
+
 	//Change the colour to the unchoose colour
 	ChangeColour(unchoose_colour);
 	return choosenum;
-}
-
-void MENU::ChangeColour(int colour)
-{	//standard function to change the colour which will show the following time
-	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-	SetConsoleTextAttribute(hConsole, colour);
-}
-
-void MENU::GotoXY(int x, int y)
-{	//standard function use to let the cursor goto the coordinate (x,y)
-	COORD pos = {x, y};
-	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-	SetConsoleCursorPosition(hConsole, pos);
 }
 
 void MENU::ShowContext()
 {	//show the all data line by line
 	for(int i = 0; i < total_ContextNumber; i++)
 	{
-		if(strcmp(MenuContext[i], "*BLOCK*") == 0)
+		if(strcmp(MenuContext[i], MENU_EMPTY_BLOCK_OPT) == 0)
 		{	//skip the data if that is *BLOCK*
 			cout << endl;
 			continue;
 		}
 		cout << MenuContext[i] << endl;
+	}
+}
+
+void MENU::CheckBlockLimit(blockLimDir dir, int *cur_choosenum)
+{
+	switch(dir)
+	{
+		case BLOCK_DIR_LIMIT_UP:
+			while(strcmp(MenuContext[*cur_choosenum], MENU_EMPTY_BLOCK_OPT) == 0){
+				// check if content reached to the limit
+				*cur_choosenum -= 1;		//crossover the BLOCK
+				if (*cur_choosenum < 0) {
+					*cur_choosenum = total_ContextNumber - 1;
+				}
+			}
+			break;
+
+		case BLOCK_DIR_LIMIT_DOWN:
+			while(strcmp(MenuContext[*cur_choosenum], MENU_EMPTY_BLOCK_OPT) == 0){
+				// check if content reached to the limit
+				*cur_choosenum += 1;		//crossover the BLOCK
+				if (*cur_choosenum > total_ContextNumber - 1) {
+					*cur_choosenum = 0;
+				}
+			}
+			break;
 	}
 }
