@@ -141,7 +141,8 @@ Start:
 
 	case USER_FUNC_HISTORY_CLEAR:
 	{
-		cout << endl;
+		GotoXY(0, InitialY + total + 1);
+
 		ChangeColour(COLOR_PURPLE);
 		ShowText("Quiz 將會把歷史檔案的資料全部清除\n",
 			"Quiz will clear all the data in History file\n");
@@ -170,6 +171,8 @@ Start:
 
 	case USER_FUNC_HISTORY_PRACTICE:
 	{
+		GotoXY(0, InitialY + total + 1);
+
 		total = ReadQuestion(Answer, Question, "[History].qzc");
 		if(total == 0)
 		{
@@ -224,8 +227,9 @@ Start:
 		//let the cursor move to the bottom of the menu
 		GotoXY(0, InitialY + total);
 
-		strcat(Answer[chosen], ".qz");	//add the filename-ex from the menu that have chosen
-		total = ReadQuestion(Answer, Question, Answer[chosen]);	//Read the file
+		char filename[MAX_PATH];
+		snprintf(filename, sizeof(filename), """%s\\%s", current_dir, Answer[chosen]);
+		total = ReadQuestion(Answer, Question, filename);	//Read the file
 		if(total == 0)
 		{
 			ChangeColour(COLOR_LIGHT_YELLOW);
