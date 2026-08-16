@@ -57,6 +57,8 @@ const char Func_Menu_English[][MAXLINE] = {
 void ProgrammeTitle();
 //determine whether or not the file is empty
 int EmptyFile(char*);
+// custom function for trimming the string
+char *trim(char *str);
 
 //Information collection
 int ReadSetup();			//read which language is the programme saved

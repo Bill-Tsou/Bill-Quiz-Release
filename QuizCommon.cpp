@@ -32,6 +32,25 @@ int EmptyFile(char *filename)
 	}
 }
 
+char *trim(char *str)
+{
+    if (str == NULL) return NULL;
+
+    // trim leading space
+    while (isspace((unsigned char)*str)) str++;
+
+    if (*str == '\0') return str; // All spaces
+
+    // trim trailing space
+    char *end = str + strlen(str) - 1;
+    while (end > str && isspace((unsigned char)*end)) end--;
+
+    // Write new null terminator
+    *(end + 1) = '\0';
+
+    return str;
+}
+
 void ShowText(const char *CH, const char *EN)
 {
 	if(Programme_Language == Chinese)
@@ -718,13 +737,21 @@ void StartTesting(char Answer[][MAXLINE], char Question[][MAXLINE],
 	float result;
 
 ReStart:
-	ShowText("請輸入您想要測驗的題數 (輸入 * 代表全部) ",
-	 "Please enter how much questions you want to answer (enter * represents ALL) ");
+	ShowText("請輸入您想要測驗的題數 (輸入 * 或留白代表全部) ",
+	 "Please enter how much questions you want to answer (enter * or leave blank represents ALL) ");
 	cout << "(<= " << total << "): ";
 	fflush(stdin);
 	gets(buffer);
 	cout << endl;
-	if(strcmp(buffer, "*") == 0)	//all questions
+
+	// trim the buffer
+	if(trim(buffer) == NULL)
+	{
+		ShowText("輸入錯誤，請重新輸入！\n", "Input error, please re-enter!\n");
+		goto ReStart;
+	}
+
+	if(strcmp(buffer, "*") == 0 || strlen(buffer) == 0)	//all questions
 		choosenum = total;
 	else
 	{
