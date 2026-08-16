@@ -190,7 +190,7 @@ Start:
 		}
 		BreakOrder(Answer, Question, total);
 		StartTesting(Answer, Question, total, true);
-		goto Start;
+		break;
 	}
 
 	default:
@@ -220,10 +220,7 @@ Start:
 			goto Start;
 		}
 
-		break;
-	}
-
-	{
+		// validate user selection and try to start the quiz
 		//let the cursor move to the bottom of the menu
 		GotoXY(0, InitialY + total);
 
@@ -244,6 +241,8 @@ Start:
 		}
 		BreakOrder(Answer, Question, total);					//Break the original order
 		StartTesting(Answer, Question, total);
+
+		break;
 	}
 
 	do
