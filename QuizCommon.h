@@ -85,6 +85,9 @@ bool SearchString(char*, char*);	//search string from the source string
 void BreakOrder(char[][MAXLINE], char[][MAXLINE], int);
 void StartTesting(char[][MAXLINE], char[][MAXLINE], int, bool = false);
 int EnteringWords(char*, int);
+// function EnteringAnswer() note:
+//   return 1 when finishing entering the answer (by pressing Enter)
+//   return -1 when user quits the question (by pressing Ctrl+C)
 int EnteringAnswer(int, char*);
 void EAInit(int);
 //with what have been typed and the total number of the questions

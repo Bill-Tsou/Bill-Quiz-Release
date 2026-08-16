@@ -733,6 +733,8 @@ void StartTesting(char Answer[][MAXLINE], char Question[][MAXLINE],
 	int choosenum;						//how many questions do the user want to answer
 	char buffer[MAXLINE];
 	int wrong = 0;						//how many questions answers incorrectly
+	int ret_answer = 0;					// return value of EnteringAnswer()
+	int real_ques_num = 0;				// the real question number that user answered
 	short int WrongRecord[MAXVALUE];	//record which question answers incorrectly
 	float result;
 
@@ -760,11 +762,35 @@ ReStart:
 			goto ReStart;
 	}
 
+	// show the question number for quiz and hit messages
+	ChangeColour(COLOR_LIGHT_BLUE);
+	ShowText(" === 測驗共 ", "There are ");
+	cout << choosenum;
+	ShowText(" 題，按下 Ctrl+C 放棄答題", " questions in quiz. Press Ctrl+C to quit the quiz.");
+	cout << " ===" << endl << endl;
+	ChangeColour(COLOR_NORMAL);
+
+	// initialize variables
+	ret_answer = 0;
+	real_ques_num = 0;
+
 	for(int i = 0; i < choosenum; i++)
 	{
 		cout << (i + 1) << ". " << Question[i] << " , " << strlen(Answer[i]);
 		ShowText(" 個字母: ", " characters: ");
-		EnteringAnswer(strlen(Answer[i]), buffer);
+		ret_answer = EnteringAnswer(strlen(Answer[i]), buffer);
+		if(ret_answer == -1)		// user quits the question
+		{
+			ChangeColour(COLOR_LIGHT_YELLOW);
+			cout << endl << endl;
+			ShowText("放棄本次測驗！", "The quiz was quit!");
+			cout << endl << endl;
+			ChangeColour(COLOR_NORMAL);
+			break;
+		}
+		else
+			real_ques_num += 1;
+
 		if(strcmp(buffer, Answer[i]) == 0)	//compare the input and the answer
 		{							//if the two are identical
 			ChangeColour(COLOR_LIGHT_GREEN);
@@ -782,9 +808,17 @@ ReStart:
 		ChangeColour(COLOR_NORMAL);
 	}
 
-	ShowText("本次測驗的正確率為：", "The correctness ratio of this quiz is: ");
-	result = ((float)choosenum - (float)wrong) / (float)choosenum * 100;
-	cout << result << "%" << endl << endl;
+	if (real_ques_num > 0)
+	{
+		ShowText("本次測驗的正確率為：", "The correctness ratio of this quiz is: ");
+		result = (float)(real_ques_num - wrong) / (float)real_ques_num * 100.0f;
+		cout << result << "%" << endl << endl;
+	}
+	else
+	{
+		ShowText("放棄測驗所有出題，無法計算正確率！", "All questions in the test were quit, the correctness cannot be calculated!");
+		cout << endl << endl;
+	}
 
 	if(wrong > 0 && histmode == false)	//if something wrong has been made
 	{
@@ -792,7 +826,15 @@ ReStart:
 		RefreshHistory();
 	}
 	else if(histmode == true)
+	{
+		// add the non-selected questions to WrongRecord for keeping them in history file
+		if (choosenum < total)
+		{
+			for (int i = choosenum; i < total; i++)
+				WrongRecord[wrong++] = i;
+		}
 		RebuildHistory(Answer, Question, WrongRecord, wrong);
+	}
 }
 
 int EnteringAnswer(int wordlength, char *rewords)
@@ -902,6 +944,8 @@ int EnteringAnswer(int wordlength, char *rewords)
 		}
 		else if((int)keybuffer == 13)//if the key Enter is pressed
 			break;
+		else if((int)keybuffer == 3)// if Ctrl+C was pressed
+			return -1;
 		else//key in other English letter
 		{
 			cout << keybuffer;
