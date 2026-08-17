@@ -71,7 +71,7 @@ int ReadQuestion(char[][MAXLINE], char[][MAXLINE], char*);
 //Functions on the menu
 void EnterLanguageSetup();			//modify the language or menu file
 void SearchOnMenu();		//show the result of any words that contains the key words
-void CreateNewLib();		//create the new quiz file(.qz)
+void CreateNewLib(const char *current_dir);	//create the new quiz file(.qz)
 void AddOldFile();			//add the old file into the menu
 void About();				//show something about this programme
 void DeleteOnMenu(char[][MAXLINE], int, int);	//delete file on menu

@@ -136,7 +136,7 @@ Start:
 
 	case USER_FUNC_LIB_CREATE:
 	{
-		CreateNewLib();
+		CreateNewLib(current_dir);
 		goto Start;
 	}
 

@@ -485,17 +485,17 @@ void AddOldFile()
 	}
 }
 
-void CreateNewLib()
+void CreateNewLib(const char *current_dir)
 {
 	ProgrammeTitle();
 	
-	char filename[50];
+	char filename[MAX_PATH] = {0}, new_filename[120] = {0};
 	fstream NewQuizFile;
 	
 	ShowText("請輸入想創建檔案的檔名：", "Please enter the filename of a new file: ");
-	gets(filename);
+	gets(new_filename);
 	//check if there is any file that does exist in the same directory
-	strcat(filename, ".qz");
+	snprintf(filename, sizeof(filename), "%s\\%s.qz", current_dir, new_filename);
 	NewQuizFile.open(filename, ios::in);
 	if(NewQuizFile.is_open())		//the file does exist
 	{
@@ -554,8 +554,11 @@ void EditOnMenu(char Menu[][MAXLINE], int total)
 
 void txtToqz(char *filename)	//transfer the ex-filename from txt to qz
 {
-	char comrename[80] = "\"";	//command rename prompt
-	
+	char cmd_rename[MAX_PATH * 2 + 100] = "\"";	//command rename prompt
+	char text_filename[MAX_PATH] = {0}, *last_backslash = NULL;
+	int len_fn = 0;
+
+	cout << endl;
 	ChangeColour(COLOR_NORMAL);
 	ShowText("在新增資料庫時，請依照規則：\n\n",
 	 "\n\nWhile adding the new Quiz Library, please follow the rule:\n\n");
@@ -573,21 +576,30 @@ void txtToqz(char *filename)	//transfer the ex-filename from txt to qz
 	 "After completed to build the library, please save and close Notepad.\n"
 	 "The programme would run automatically...");
 	ChangeColour(COLOR_NORMAL);
-	
-	strcat(comrename, filename);
-	strcat(comrename, "\"");
-	system(comrename);	//open the txt file to modify the quiz file
-	
-	strcpy(comrename, "rename \"");
-	strcat(comrename, filename);
-	strcat(comrename, "\" \"");
-	filename[strlen(filename) - 3] = 'q';
-	filename[strlen(filename) - 2] = 'z';
-	filename[strlen(filename) - 1] = '\0';
-	strcat(comrename, filename);
-	strcat(comrename, "\"");
-	
-	system(comrename);
+
+	snprintf(cmd_rename, sizeof(cmd_rename), "\"%s\"", filename);
+	system(cmd_rename);	//open the txt file to modify the quiz file
+
+	snprintf(cmd_rename, sizeof(cmd_rename), "rename \"%s\" ", filename);
+
+	// the target argument of rename command cannot contain the directory
+	last_backslash = strrchr(filename, '\\');
+	if (last_backslash != NULL)
+	{
+		last_backslash++;
+		for (char *c = last_backslash; *c != '\0'; c++)
+		{
+			text_filename[len_fn++] = *c;
+		}
+	}
+	text_filename[len_fn] = '\0';
+
+	text_filename[strlen(text_filename) - 3] = 'q';
+	text_filename[strlen(text_filename) - 2] = 'z';
+	text_filename[strlen(text_filename) - 1] = '\0';
+	snprintf(cmd_rename, sizeof(cmd_rename), "%s \"%s\"", cmd_rename, text_filename);
+
+	system(cmd_rename);
 }
 
 void DeleteOnMenu(char Menu[][MAXLINE], int chosen, int total)
