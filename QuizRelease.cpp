@@ -26,6 +26,9 @@ int main()
 	// initialize current directory
 	strncpy(current_dir, PATH_DATABASE, sizeof(current_dir));
 
+	// read user selected language from config file
+	ReadSetup();
+
 Start:
 	MENU *menu = new MENU();
 	system("cls");					//clear everything on the console window
@@ -38,8 +41,6 @@ Start:
 		system("pause");
 		return EXIT_FAILURE;
 	}
-
-	ReadSetup();
 
 	// get directory and files list
 	dir_file_cnt = GetDirMenu(current_dir, Answer);
