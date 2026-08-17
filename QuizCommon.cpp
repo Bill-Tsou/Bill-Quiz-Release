@@ -522,15 +522,31 @@ void CreateNewLib(const char *current_dir)
 	FileNameToMenu(filename);	//Add to the menu
 }
 
-void EditOnMenu(char Menu[][MAXLINE], int total)
+void EditOnMenu(const char *current_dir, char Menu[][MAXLINE], int total)
 {
 	ProgrammeTitle();
 	ShowText("從選單中選擇要編輯的檔案：", "Select which you want to edit on Menu:");
+
+	int menu_edit_total = 0;
+	char Menu_Edit[MAXVALUE][MAXLINE] = {0};
+
+	// filter out all directories and blocks, only keep the filenames for edit
+	for (int i = 0; i < total; i++)
+	{
+		if ((Menu[i][strlen(Menu[i]) - 1] == '\\') ||
+			(strcmp(Menu[i], MENU_EMPTY_BLOCK_OPT) == 0))
+		{
+			continue;
+		}
+
+		strcpy(Menu_Edit[menu_edit_total++], Menu[i]);
+	}
 	
 	MENU *menu = new MENU();
 	int choose;
-	char comrename[80] = "rename \"";
-	menu->InitMenu(Menu, 0, total, InitialY, 7, 164);
+	int tmp_strlen = 0;
+	char cmd_rename[MAX_PATH * 2 + 100] = {0}, selected_filename[MAX_PATH] = {0}, text_filename[MAX_PATH] = {0};
+	menu->InitMenu(Menu_Edit, 0, menu_edit_total, InitialY, 7, 164);
 	do
 	{
 		choose = menu->StartChoose(0);
@@ -538,18 +554,26 @@ void EditOnMenu(char Menu[][MAXLINE], int total)
 	delete menu;
 	if(choose == ESCAPE)
 		return;
-	
-	strcat(comrename, Menu[choose]);
-	strcat(comrename, ".qz");
-	strcat(comrename, "\" \"");
-	strcat(comrename, Menu[choose]);
-	strcat(comrename, ".txt\"");
-	system(comrename);					//change qz file to txt file
+
+	snprintf(selected_filename, sizeof(selected_filename), "%s\\%s", current_dir, Menu_Edit[choose]);
+	strcpy(text_filename, Menu_Edit[choose]);
+
+	tmp_strlen = strlen(text_filename);
+	if ((text_filename[tmp_strlen - 1] == 'z') &&
+		(text_filename[tmp_strlen - 2] == 'q') &&
+		(text_filename[tmp_strlen - 3] == '.')
+	)
+	{
+		text_filename[tmp_strlen - 3] = '\0';
+		snprintf(text_filename, sizeof(text_filename), "%s.txt", text_filename);
+	}
+
+	snprintf(cmd_rename, sizeof(cmd_rename), "rename \"%s\" \"%s\"", selected_filename, text_filename);
+	system(cmd_rename);					//change qz file to txt file
 	
 	cout << endl;
-	strcpy(comrename, Menu[choose]);
-	strcat(comrename, ".txt");
-	txtToqz(comrename);					//change txt file to qz file
+	snprintf(selected_filename, sizeof(selected_filename), "%s\\%s", current_dir, text_filename);
+	txtToqz(selected_filename);			//change txt file to qz file
 }
 
 void txtToqz(char *filename)	//transfer the ex-filename from txt to qz

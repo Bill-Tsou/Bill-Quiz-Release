@@ -75,7 +75,7 @@ void CreateNewLib(const char *current_dir);	//create the new quiz file(.qz)
 void AddOldFile();			//add the old file into the menu
 void About();				//show something about this programme
 void DeleteOnMenu(char[][MAXLINE], int, int);	//delete file on menu
-void EditOnMenu(char[][MAXLINE], int);			//edit file on menu
+void EditOnMenu(const char *current_dir, char[][MAXLINE], int);			//edit file on menu
 
 void txtToqz(char*);
 void FileNameToMenu(char*);	//add the filename to the menu and check if there is any repeats

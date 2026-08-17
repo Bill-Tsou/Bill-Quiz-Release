@@ -123,7 +123,7 @@ Start:
 	case USER_FUNC_LIB_EDIT:
 	{
 		if(EmptyFile("[Quiz].qrc") == 0)
-			EditOnMenu(Answer, total - MAX_USER_FUNC_COUNT - 1);
+			EditOnMenu(current_dir, Answer, total - MAX_USER_FUNC_COUNT - 1);
 		else
 		{
 			ChangeColour(COLOR_LIGHT_YELLOW);
