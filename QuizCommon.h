@@ -74,7 +74,7 @@ void SearchOnMenu();		//show the result of any words that contains the key words
 void CreateNewLib(const char *current_dir);	//create the new quiz file(.qz)
 void AddOldFile();			//add the old file into the menu
 void About();				//show something about this programme
-void DeleteOnMenu(char[][MAXLINE], int, int);	//delete file on menu
+void DeleteOnMenu(const char *current_dir, char Menu[][MAXLINE], int chosen, int total);	//delete file on menu
 void EditOnMenu(const char *current_dir, char[][MAXLINE], int);			//edit file on menu
 
 void txtToqz(char*);

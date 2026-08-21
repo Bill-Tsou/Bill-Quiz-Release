@@ -83,6 +83,13 @@ Start:
 		GotoXY(0, InitialY + total);
 		return EXIT_SUCCESS;
 	}
+	// check if user tries to delete the selected file
+	else if (chosen < 0)
+	{
+		passchoose = chosen * (-1) - 1;
+		DeleteOnMenu(current_dir, Answer, passchoose, total - MAX_USER_FUNC_COUNT - 1);
+		goto Start;
+	}
 
 	switch(chosen - dir_file_cnt)
 	{

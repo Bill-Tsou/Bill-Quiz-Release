@@ -626,40 +626,54 @@ void txtToqz(char *filename)	//transfer the ex-filename from txt to qz
 	system(cmd_rename);
 }
 
-void DeleteOnMenu(char Menu[][MAXLINE], int chosen, int total)
+void DeleteOnMenu(const char *current_dir, char Menu[][MAXLINE], int chosen, int total)
 {
-	fstream MenuFile;
-	MenuFile.open("[Quiz].qrc", ios::out);
-	if(!MenuFile)
-	{
-		ShowText("檔案無法建立！", "The file cannot be built!");
+	char file_path[MAX_PATH] = {0}, cmd_buffer[MAX_PATH + 10], user_input = '\0';
+	snprintf(file_path, sizeof(file_path), "%s\\%s", current_dir, Menu[chosen]);
+
+	ProgrammeTitle();
+
+	// check if the selected option is folder, the folder cannot be deleted
+	if (file_path[strlen(file_path) - 1] == '\\') {
+		ChangeColour(COLOR_LIGHT_GREEN);
+		cout << " " << file_path;
+		ShowText(" 是資料夾，無法被刪除！", " is a folder, cannot be deleted!");
+		ChangeColour(COLOR_NORMAL);
+
+		cout << endl << endl;
+		ShowText("按下任意鍵繼續...", "Press any keys to continue...");
 		getch();
 		return;
 	}
-	else
-	{
-		if(chosen == total - 1)			//delete the file in the bottom of the menu
-		{
-			for(int i = 0; i < total - 1; i++)
-			{
-				MenuFile << Menu[i];
-				if(i != total - 2)
-					MenuFile << endl;
-			}
-		}
-		else
-		{
-			for(int i = 0; i < total; i++)
-			{
-				if(i == chosen)
-					continue;			//skip the file should be deleted
-				MenuFile << Menu[i];	//else write into the menu file
-				if(i != total - 1)
-					MenuFile << endl;	//after the last file, should not have new line
-			}
-		}
-		MenuFile.close();
-	}
+
+	ChangeColour(COLOR_LIGHT_BLUE);
+
+	ShowText("檔案 ", "File ");
+	cout << file_path;
+	ShowText(" 將要被刪除，刪除後將無法復原，確定要繼續嗎 (Y/n) ? ",
+		" is about to be deleted, file could not be recovered once deleted.\n"
+		"Are you sure to continue (Y/n) ? ");
+
+	ChangeColour(COLOR_NORMAL);
+
+	do {
+		char tmp_input = getch();
+		// default option is Y
+		if ((unsigned int)tmp_input == 13)
+			tmp_input = 'Y';
+		user_input = toupper(tmp_input);
+	} while((user_input != 'Y') && (user_input != 'N'));
+
+	cout << endl << endl;
+
+	if (user_input == 'N')	// cancel file deletion by user
+		return;
+
+	snprintf(cmd_buffer, sizeof(cmd_buffer), "del %s", file_path);
+	system(cmd_buffer);
+
+	ShowText("檔案已經刪除! 按任意鍵繼續...", "The file has been deleted! Press any keys to continue...");
+	getch();
 }
 
 bool SearchString(char *Source, char *Search)
