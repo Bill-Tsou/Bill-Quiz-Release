@@ -1,0 +1,8 @@
+.vscode
+*.o
+*.gch
+*.exe
+*.layout
+*.rc
+*.set
+*.qrc
