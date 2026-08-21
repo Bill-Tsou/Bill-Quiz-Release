@@ -115,15 +115,7 @@ Start:
 
 	case USER_FUNC_LIB_SEARCH:
 	{
-		if(EmptyFile("[Quiz].qrc") == 0)	//If the menu file is not empty
-			SearchOnMenu();
-		else						//If the menu file is not empty or does not exist
-		{
-			ChangeColour(COLOR_LIGHT_YELLOW);
-			ShowText("\n選單是空的！沒有辦法從選單中搜尋關鍵字\n", "\nMenu is empty! Cannot search from Menu\n");
-			ChangeColour(COLOR_NORMAL);
-			getch();
-		}
+		SearchOnMenu();
 		goto Start;
 	}
 

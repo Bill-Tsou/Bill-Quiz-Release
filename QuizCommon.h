@@ -63,6 +63,7 @@ char *trim(char *str);
 //Information collection
 int ReadSetup();			//read which language is the programme saved
 int ListPathFiles(const char *current_dir, char MenuContext[][MAXLINE], int menu_start_idx, bool list_dir = false);
+int ListQzFilesRecursive(const char *dir, char FilePaths[][MAX_PATH], int count);
 int GetDirMenu(const char *current_dir, char MenuContext[][MAXLINE]);
 int GetMenuFunctions(char MenuContext[][MAXLINE], int menu_start_idx);
 int ReadQuestion(char[][MAXLINE], char[][MAXLINE], char*);

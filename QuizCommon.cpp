@@ -164,6 +164,42 @@ int ListPathFiles(const char *current_dir, char MenuContext[][MAXLINE], int menu
 	return number;
 }
 
+int ListQzFilesRecursive(const char *dir, char FilePaths[][MAX_PATH], int count)
+{
+	WIN32_FIND_DATAA findFileData;
+	HANDLE findHandle;
+	char searchPath[MAX_PATH], fullPath[MAX_PATH];
+	int name_len;
+
+	snprintf(searchPath, MAX_PATH, "%s\\*", dir);
+	findHandle = FindFirstFileA(searchPath, &findFileData);
+	if (findHandle == INVALID_HANDLE_VALUE)
+		return count;	// cannot open the directory, just skip it
+
+	do {
+		if (strcmp(findFileData.cFileName, ".") == 0 || strcmp(findFileData.cFileName, "..") == 0)
+			continue;
+
+		snprintf(fullPath, MAX_PATH, "%s\\%s", dir, findFileData.cFileName);
+
+		if (findFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+			count = ListQzFilesRecursive(fullPath, FilePaths, count);	// recurse into sub-directory
+		}
+		else if (findFileData.dwFileAttributes & FILE_ATTRIBUTE_ARCHIVE) {
+			name_len = strlen(findFileData.cFileName);
+			if (name_len > 3 && strcmp(findFileData.cFileName + name_len - 3, ".qz") == 0
+				&& count < MAXVALUE) {
+				strncpy(FilePaths[count], fullPath, MAX_PATH);
+				count += 1;
+			}
+		}
+	} while (FindNextFileA(findHandle, &findFileData));
+
+	FindClose(findHandle);
+
+	return count;
+}
+
 int GetDirMenu(const char *current_dir, char MenuContext[][MAXLINE])
 {
 	int number = 0, list_num = 0;
@@ -341,79 +377,80 @@ void ColumnAdjustment(int Long)
 void SearchOnMenu()
 {
 	ProgrammeTitle();
-	
+
 	fstream OpenFile;
-	char Menu[MAXVALUE][MAXLINE], linebuffer[MAXLINE], Entemp[MAXLINE], Chtemp[MAXLINE],
+	char FilePaths[MAXVALUE][MAX_PATH], linebuffer[MAXLINE], Entemp[MAXLINE], Chtemp[MAXLINE],
 	 search[30], *ptr, EnResult[MAXVALUE][MAXLINE], ChResult[MAXVALUE][MAXLINE];
 	int number = 0, counter = 0;
-	bool Right = false;
-	OpenFile.open("[Quiz].qrc", ios::in);
-	if(!OpenFile)
+
+	// walk the whole database directory tree to collect every library file
+	number = ListQzFilesRecursive(PATH_DATABASE, FilePaths, 0);
+	if(number == 0)
 	{
-		ShowText("MENU 檔案不存在！\n\n", "Menu file does not exist!\n\n");
+		ChangeColour(COLOR_LIGHT_YELLOW);
+		ShowText("資料庫是空的！沒有辦法搜尋關鍵字\n\n", "Database is empty! Cannot search for keywords\n\n");
+		ChangeColour(COLOR_NORMAL);
 		getch();
 		return;
 	}
-	while(!OpenFile.eof())
-	{
-		OpenFile.getline(Menu[number], sizeof(Menu[number]));
-		strcat(Menu[number], ".qz");
-		number += 1;
-	}
-	OpenFile.close();
-	
-	ShowText("請輸入要從選單資料搜尋的字串：",
-	 "Please Enter the string you want to search from the file on Menu: ");
+
+	ShowText("請輸入要從資料庫中搜尋的字串：",
+	 "Please Enter the string you want to search from the database: ");
 	fflush(stdin);
 	gets(search);
-	
+
 	ShowText("\n\n\t答案(英文)\t\t\t\t\t\t題目(中文)\n\n",
 	 "\n\nAnswer\t(English)\t\t\t\t\t\tQuestion(Chinese)\n\n");
 
 	for(int i = 0; i < number; i++)
 	{
-		OpenFile.open(Menu[i], ios::in);
-		cout << Menu[i] << ": ";
+		OpenFile.open(FilePaths[i], ios::in);
 		if(!OpenFile)
 		{
+			cout << FilePaths[i] << ": ";
 			ShowText("檔案不存在！\n\n", "The file doesn\'t exist!\n\n");
 			continue;
 		}
-		else
-		{
-			cout << "\n\n";			//The file does exist, show the Search result
-			while(!OpenFile.eof())
-			{
-				OpenFile.getline(linebuffer, sizeof(linebuffer));
-				ptr = strtok(linebuffer, split);
-				if(ptr == NULL)
-					continue;
-				strcpy(Entemp, ptr);
-				ptr = strtok(NULL, split);
-				if(ptr == NULL)
-					continue;
-				strcpy(Chtemp, ptr);
 
-				if(SearchString(Entemp, search) == true
-				 || SearchString(Chtemp, search) == true)
+		bool file_header_shown = false;	// only show the filename once it has a match
+		while(!OpenFile.eof())
+		{
+			OpenFile.getline(linebuffer, sizeof(linebuffer));
+			ptr = strtok(linebuffer, split);
+			if(ptr == NULL)
+				continue;
+			strcpy(Entemp, ptr);
+			ptr = strtok(NULL, split);
+			if(ptr == NULL)
+				continue;
+			strcpy(Chtemp, ptr);
+
+			if(SearchString(Entemp, search) == true
+			 || SearchString(Chtemp, search) == true)
+			{
+				if(file_header_shown == false)
 				{
-					cout << "\t" << Entemp;
-					ColumnAdjustment(strlen(Entemp));
-					cout << Chtemp << endl;
-					
-					if(counter < MAXVALUE)
-					{
-						strcpy(EnResult[counter], Entemp);
-						strcpy(ChResult[counter], Chtemp);
-					}
-					counter += 1;
+					cout << FilePaths[i] << ":\n\n";
+					file_header_shown = true;
 				}
-				//if the search string fits one of the english or chinese string
-				//then show on the screen
+
+				cout << "\t" << Entemp;
+				ColumnAdjustment(strlen(Entemp));
+				cout << Chtemp << endl;
+
+				if(counter < MAXVALUE)
+				{
+					strcpy(EnResult[counter], Entemp);
+					strcpy(ChResult[counter], Chtemp);
+				}
+				counter += 1;
 			}
-			OpenFile.close();
-			cout << endl;
+			//if the search string fits one of the english or chinese string
+			//then show on the screen
 		}
+		OpenFile.close();
+		if(file_header_shown == true)
+			cout << endl;
 	}
 	ShowText("總共搜尋到：", "Total: ");
 	cout << counter;
@@ -425,6 +462,13 @@ void SearchOnMenu()
 		 "If you save the file, the part of the result would be missed.\n\n");
 		counter = MAXVALUE - 1;
 	}
+	else if(counter == 0)
+	{
+		ShowText("按任意鍵返回...", "Press any keys to go back...");
+		getch();
+		return;
+	}
+
 	do
 	{
 		ShowText("是否要儲存搜尋結果為新檔案 (y/n)? ",
@@ -438,8 +482,10 @@ void SearchOnMenu()
 	ShowText("請輸入新的檔案名稱：", "Please enter new file name: ");
 	fflush(stdin);
 	gets(linebuffer);
-	strcat(linebuffer, ".qz");
-	OpenFile.open(linebuffer, ios::out);
+
+	char save_path[MAX_PATH];
+	snprintf(save_path, sizeof(save_path), "%s\\%s.qz", PATH_DATABASE, linebuffer);
+	OpenFile.open(save_path, ios::out);
 	if(!OpenFile)
 	{
 		ShowText("檔案無法建立！\n\n", "The file cannot be built!\n\n");
@@ -453,8 +499,6 @@ void SearchOnMenu()
 			OpenFile << endl;
 	}
 	OpenFile.close();
-	linebuffer[strlen(linebuffer) - 3] = '\0';
-	FileNameToMenu(linebuffer);
 }
 
 void AddOldFile()
