@@ -321,7 +321,7 @@ void About()
 	 "Hope to achieve the goal by the theories of \"Learning Pyramid\" and "
 	 "\"Forgetting Curve\"\n\n");
 	ShowText("程式建立者：鄒秉宏 國立宜蘭大學 電機工程學系\n",
-	 "Programme builder: Ping-Hung, Tsou from Department of Electrical Engineering, "
+	 "Programme builder: Bill Tsou from Department of Electrical Engineering, "
 	 "National Ilan University, Taiwan\n");
 	cout << "March 5th, 2018\n\n";
 	
