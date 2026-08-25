@@ -3,6 +3,5 @@
 *.gch
 *.exe
 *.layout
-*.rc
 *.set
 *.qrc
