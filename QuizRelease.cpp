@@ -121,15 +121,7 @@ Start:
 
 	case USER_FUNC_LIB_EDIT:
 	{
-		if(EmptyFile("[Quiz].qrc") == 0)
 			EditOnMenu(current_dir, Answer, total - MAX_USER_FUNC_COUNT - 1);
-		else
-		{
-			ChangeColour(COLOR_LIGHT_YELLOW);
-			ShowText("\n選單中沒有選項可供編輯...\n", "\nThere is no file on Menu to edit...\n");
-			ChangeColour(COLOR_NORMAL);
-			getch();
-		}
 		goto Start;
 	}
 

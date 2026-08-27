@@ -501,34 +501,6 @@ void SearchOnMenu()
 	OpenFile.close();
 }
 
-void AddOldFile()
-{
-	ProgrammeTitle();
-	
-	char filename[50];
-	ShowText("請輸入檔案名稱 (.qz檔案)：",
-	 "Please enter the filename with file name extension \"qz\": ");
-	gets(filename);
-	
-	if(filename[strlen(filename) - 1] != 'z' && filename[strlen(filename - 2)] != 'q'
-		&& filename[strlen(filename) - 3] != '.')
-			strcat(filename, ".qz");	//if the filename does not contain the filename-ex
-	
-	fstream newfile;
-	newfile.open(filename, ios::in);
-	if(!newfile)
-	{
-		ShowText("檔案不存在！\n\n", "The file does not exist!\n\n");
-		getch();
-	}
-	else
-	{
-		filename[strlen(filename) - 3] = '\0';	//get away the filename-ex
-		FileNameToMenu(filename);
-		newfile.close();
-	}
-}
-
 void CreateNewLib(const char *current_dir)
 {
 	ProgrammeTitle();
@@ -563,7 +535,6 @@ void CreateNewLib(const char *current_dir)
 	txtToqz(filename);
 
 	filename[strlen(filename) - 3] = '\0';
-	FileNameToMenu(filename);	//Add to the menu
 }
 
 void EditOnMenu(const char *current_dir, char Menu[][MAXLINE], int total)
@@ -735,61 +706,6 @@ bool SearchString(char *Source, char *Search)
 		}
 	}
 	return false;
-}
-
-void FileNameToMenu(char *filename)
-{
-	fstream MenuInput;
-	char Menu[MAXVALUE][MAXLINE];
-	int totalnum = 0, EmptyMenu;
-	bool AddThisFile = true;
-	
-	EmptyMenu = EmptyFile("[Quiz].qrc");
-	MenuInput.open("[Quiz].qrc", ios::in);
-	if(!MenuInput)
-	{
-		ShowText("檔案不存在！", "The file is not exist");
-		getch();
-		return;
-	}
-	while(!MenuInput.eof())
-	{
-		MenuInput.getline(Menu[totalnum], sizeof(Menu[totalnum]));
-		totalnum += 1;
-	}
-	for(int i = 0; i < totalnum; i++)	//to see if there is identical file
-	{
-		if(strcmp(Menu[i], filename) == 0)
-		{
-			AddThisFile = false;
-			break;
-		}
-	}
-	if(AddThisFile == true)
-	{
-		MenuInput.close();
-		fstream OutputMenu;
-		OutputMenu.open("[Quiz].qrc", ios::out);
-		if(!OutputMenu)
-		{
-			ShowText("檔案無法建立！", "Menu Cannot be established!");
-		}
-		else
-		{
-			OutputMenu << filename;
-			if(EmptyMenu == 0)	//if the menu is not empty
-			{
-				OutputMenu << endl;
-				for(int i = 0; i < totalnum; i++)
-				{
-					OutputMenu << Menu[i];
-					if(i < totalnum - 1)
-						OutputMenu << endl;
-				}
-			}
-			OutputMenu.close();
-		}
-	}
 }
 
 void BreakOrder(char EN[][MAXLINE], char CH[][MAXLINE], int total)

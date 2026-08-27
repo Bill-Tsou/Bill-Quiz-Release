@@ -73,13 +73,11 @@ int ReadQuestion(char[][MAXLINE], char[][MAXLINE], char*);
 void EnterLanguageSetup();			//modify the language or menu file
 void SearchOnMenu();		//show the result of any words that contains the key words
 void CreateNewLib(const char *current_dir);	//create the new quiz file(.qz)
-void AddOldFile();			//add the old file into the menu
 void About();				//show something about this programme
 void DeleteOnMenu(const char *current_dir, char Menu[][MAXLINE], int chosen, int total);	//delete file on menu
 void EditOnMenu(const char *current_dir, char[][MAXLINE], int);			//edit file on menu
 
 void txtToqz(char*);
-void FileNameToMenu(char*);	//add the filename to the menu and check if there is any repeats
 bool SearchString(char*, char*);	//search string from the source string
 
 //Quiz
