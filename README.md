@@ -79,9 +79,18 @@ Navigate the menu with the arrow keys and Enter; press `Delete` (`fn` + `Backspa
 on a library file to remove it from the menu, and `Esc` to leave the programme. The first run will set
 up `database/` and `[Quiz].set` automatically if they don't already exist.
 
-The menu is drawn at absolute positions of the terminal, so keep the terminal window taller than the
-menu. When no graphical display is available (e.g. over SSH), the "About" licence is shown in the
-terminal instead of a window.
+When a folder holds more items than the terminal can show, the menu scrolls with the cursor and shows
+how many items are hidden above (`▲`) and below (`▼`); use `PageUp`/`PageDown` to move one page at a
+time:
+
+- **macOS Terminal**: press `Shift` + `fn` + `↑`/`↓`. Terminal uses `fn` + `↑`/`↓` alone to scroll its own
+  window, so the programme does not receive them.
+- **Other terminals** (iTerm2, VS Code terminal, Ubuntu GNOME Terminal, ...): press `PageUp`/`PageDown`
+  (`fn` + `↑`/`↓` on a Mac keyboard). If the terminal scrolls its window instead, try them with `Shift`,
+  or set the keys to send `\033[5~` (Page Up) / `\033[6~` (Page Down) in the terminal's keyboard settings.
+
+When no graphical display is available (e.g. over SSH), the "About" licence is shown in the terminal
+instead of a window.
 
 Demo screenshot of Quiz program
 

@@ -25,6 +25,7 @@ static void SignalHandler(int sig)
 int main()
 {
 	int total = 0, chosen = 0, passchoose = 0, dir_file_cnt = 0, function_cnt = 0;
+	int menu_bottom = 0;	// y coord of the line below the menu
 	char current_dir[MAX_PATH] = {0}; // path of database list
 	char Answer[MAXVALUE][MAXLINE], Question[MAXVALUE][MAXLINE];
 
@@ -86,11 +87,12 @@ Start:
 	 "Select the quiz or functionality from Menu (Delete to remove the file on Menu):");
 
 	chosen = menu->StartChoose(passchoose);
+	menu_bottom = menu->GetBottomY();
 	delete menu;
 	passchoose = chosen;
 
 	if(chosen == ESCAPE) {
-		GotoXY(0, InitialY + total);
+		GotoXY(0, menu_bottom);
 		return EXIT_SUCCESS;
 	}
 	// check if user tries to delete the selected file
@@ -143,7 +145,7 @@ Start:
 
 	case USER_FUNC_HISTORY_CLEAR:
 	{
-		GotoXY(0, InitialY + total + 1);
+		GotoXY(0, menu_bottom + 1);
 
 		ChangeColour(COLOR_PURPLE);
 		ShowText("Quiz 將會把歷史檔案的資料全部清除\n",
@@ -173,7 +175,7 @@ Start:
 
 	case USER_FUNC_HISTORY_PRACTICE:
 	{
-		GotoXY(0, InitialY + total + 1);
+		GotoXY(0, menu_bottom + 1);
 
 		total = ReadQuestion(Answer, Question, "[History].qzc");
 		if(total == 0)
@@ -226,7 +228,7 @@ Start:
 
 		// validate user selection and try to start the quiz
 		//let the cursor move to the bottom of the menu
-		GotoXY(0, InitialY + total);
+		GotoXY(0, menu_bottom);
 
 		char filename[MAX_PATH];
 		snprintf(filename, sizeof(filename), "%s/%s", current_dir, Answer[chosen]);

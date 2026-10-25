@@ -42,8 +42,8 @@ void ChangeColour(int colour);		// colour uses Windows console colour codes (bg 
 void GotoXY(int x, int y);
 void ClearScreen();
 void ResetConsole();				// restore the default terminal colour
-// read one key without echo, arrow/Home/End/Delete keys are translated to
-// the Windows conio codes: 224 followed by 72/80/75/77/71/79/83
+// read one key without echo, arrow/Home/End/Delete/PageUp/PageDown keys are translated to
+// the Windows conio codes: 224 followed by 72/80/75/77/71/79/83/73/81
 int getch();
 // read one line from stdin into buf without the trailing newline
 char *ReadLine(char *buf, int size);
@@ -60,6 +60,7 @@ class MENU
 		virtual ~MENU();
 		int StartChoose(int);//return the number of which user has choosen
 		//and give a parameter that is the inital chosen line
+		int GetBottomY();	//the y coord of the line below the menu
 	
 	private:
 		char MenuContext[MAXVALUE][MAXLINE];
@@ -68,7 +69,15 @@ class MENU
 		int total_ContextNumber;
 		unsigned char unchoose_colour;
 		unsigned char choose_colour;
+		//viewport of the menu when it is taller than the terminal
+		bool scrolling;		//whether only a part of the menu is shown
+		int top;			//index of the first shown item
+		int visible;		//number of the shown items
+		void UpdateViewport();
+		bool EnsureVisible(int choosenum);	//return true when the viewport is moved
 		void ShowContext();
+		void DrawItem(int index, unsigned char colour);
+		void DrawIndicator(const char *arrow, int from, int to);
 		void CheckBlockLimit(blockLimDir dir, int *cur_choosenum);
 };
 
