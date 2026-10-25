@@ -1,8 +1,9 @@
 #ifndef QUIZ_RELEASE_H
+#define QUIZ_RELEASE_H
 
-#include <windows.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
-#include <conio.h>
 #include <time.h>
 
 #include "Menu.h"
@@ -11,6 +12,14 @@
 /* ==== definitions ==== */
 #define InitialY 4		//define how many lines of the title of the programme would occupy
 #define PATH_DATABASE "database"	// init database path
+#define MAX_PATH 1024				// max length of a file path
+
+// command to open a file or folder with the default application
+#ifdef __APPLE__
+#define CMD_OPEN "open"
+#else
+#define CMD_OPEN "xdg-open"
+#endif
 
 /* ======== */
 
@@ -56,7 +65,7 @@ const char Func_Menu_English[][MAXLINE] = {
 //show the title on the top of the programme
 void ProgrammeTitle();
 //determine whether or not the file is empty
-int EmptyFile(char*);
+int EmptyFile(const char*);
 // custom function for trimming the string
 char *trim(char *str);
 
@@ -66,7 +75,7 @@ int ListPathFiles(const char *current_dir, char MenuContext[][MAXLINE], int menu
 int ListQzFilesRecursive(const char *dir, char FilePaths[][MAX_PATH], int count);
 int GetDirMenu(const char *current_dir, char MenuContext[][MAXLINE]);
 int GetMenuFunctions(char MenuContext[][MAXLINE], int menu_start_idx);
-int ReadQuestion(char[][MAXLINE], char[][MAXLINE], char*);
+int ReadQuestion(char[][MAXLINE], char[][MAXLINE], const char*);
 						//open the quiz file(.qz) and return the total questions number
 
 //Functions on the menu
@@ -101,6 +110,8 @@ void RebuildHistory(char[][MAXLINE], char[][MAXLINE], short int[], int);
 
 //Show the text according to programme language
 void ShowText(const char*, const char*);
+//wait until user presses any key
+void PauseConsole();
 
 /* ======== */
 

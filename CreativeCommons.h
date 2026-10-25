@@ -1,20 +1,17 @@
-﻿#ifndef CREATIVECOMMONS_H
+#ifndef CREATIVECOMMONS_H
 #define CREATIVECOMMONS_H
-
-#include <windows.h>
 
 #define English 101
 #define Chinese 102
 
-#define BITMAP_CREATIVECOMMONS		1001
-#define CREATIVECOMMONS_BUTTONOK	1002
+#define PATH_CREATIVECOMMONS_IMAGE "CreativeCommons.png"
 
-const wchar_t DialogTitleEn[] = L"Quiz - Creative Commons";
-const wchar_t DialogTitleCh[] = L"Quiz - 創用 CC";
+const char DialogTitleEn[] = "Quiz - Creative Commons";
+const char DialogTitleCh[] = "Quiz - 創用 CC";
 const unsigned short int FontHeight = 27;
 
+// show the Creative Commons dialog (GTK3), block until the dialog is closed
+// and fall back to the terminal when no display is available
 void ShowCreativeCommonsDialog();
-void RegisterCreativeCommonsDialog();
-LRESULT CALLBACK CreativeCommonDialogProc(HWND, UINT, WPARAM, LPARAM);
 
 #endif

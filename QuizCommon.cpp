@@ -1,5 +1,8 @@
 #include <iostream>
 #include <fstream>
+#include <dirent.h>
+#include <strings.h>
+#include <sys/stat.h>
 
 #include "QuizCommon.h"
 
@@ -9,7 +12,7 @@ using namespace std;
 extern int Programme_Language;
 const char split[10] = "=";
 
-int EmptyFile(char *filename)
+int EmptyFile(const char *filename)
 {
 	fstream File;
 	int FileSize;
@@ -59,9 +62,16 @@ void ShowText(const char *CH, const char *EN)
 		cout << EN;
 }
 
+void PauseConsole()
+{
+	ShowText("按下任意鍵繼續...", "Press any key to continue...");
+	getch();
+	cout << endl;
+}
+
 void ProgrammeTitle()
 {
-	system("cls");		//clear the console interface
+	ClearScreen();		//clear the console interface
 	ChangeColour(COLOR_LIGHT_YELLOW);
 	ShowText("Quiz - 中英文單字測驗\n\n",
 	 "Quiz - Test for Chinese, English Translation\n\n");
@@ -89,7 +99,7 @@ int ReadSetup()
 		{
 			Setup << English << endl;	//default language is English
 			Setup.close();
-			ReadSetup();
+			return ReadSetup();
 		}
 	}
 	else
@@ -98,104 +108,115 @@ int ReadSetup()
 		Programme_Language = atoi(buffer);
 		Setup.close();
 	}
+	return 0;
+}
+
+// compare two menu entries in alphabetical order (case-insensitive), ".." is always the first one
+static int CompareMenuEntry(const void *a, const void *b)
+{
+	const char *str_a = (const char *)a, *str_b = (const char *)b;
+
+	if (strcmp(str_a, "../") == 0)
+		return -1;
+	if (strcmp(str_b, "../") == 0)
+		return 1;
+	return strcasecmp(str_a, str_b);
 }
 
 int ListPathFiles(const char *current_dir, char MenuContext[][MAXLINE], int menu_start_idx, bool list_dir)
 {
-	WIN32_FIND_DATAA findFileData;
-	HANDLE findHandle;
-	char searchPath[MAX_PATH];
+	DIR *dir;
+	struct dirent *entry;
+	struct stat entry_stat;
+	char fullPath[MAX_PATH];
 	int number = 0;
 
-    // Create search pattern
-	snprintf(searchPath, MAX_PATH, "%s\\*", current_dir);
+	dir = opendir(current_dir);
+	if (dir == NULL && mkdir(current_dir, 0755) == 0) {
+		// try again to open the created directory
+		dir = opendir(current_dir);
+	}
 
-	for(int i = 0; i < 2; i++) {
-		findHandle = FindFirstFileA(searchPath, &findFileData);
+	if (dir == NULL) {
+		ChangeColour(COLOR_LIGHT_RED);
+		ShowText("錯誤：無法開啟資料夾 ", "Error: Cannot open folder ");
+		cout << current_dir << endl;
+		ChangeColour(COLOR_NORMAL);
+		return ERROR_CODE;
+	}
 
-		if (findHandle == INVALID_HANDLE_VALUE) {
+	while ((entry = readdir(dir)) != NULL) {
+		// Skip "." and hidden files such as .DS_Store, but keep ".."
+		if (entry->d_name[0] == '.' && strcmp(entry->d_name, "..") != 0)
+			continue;
 
-			if (i == 0) {
-				// try to create folder
-				if (CreateDirectoryA(current_dir, NULL)) {
-					FindClose(findHandle);
-					continue;	// try again to open the created directory
-				}
-			}
-
-			ChangeColour(COLOR_LIGHT_RED);
-			ShowText("錯誤：無法開啟資料夾 ", "Error: Cannot open folder ");
-			cout << current_dir << endl;
-			ChangeColour(COLOR_NORMAL);
-			return ERROR_CODE;
-		}
-		else {
+		// leave the space for the empty blocks and the functional options
+		if (menu_start_idx + number >= MAXVALUE - MAX_USER_FUNC_COUNT - 2)
 			break;
+
+		snprintf(fullPath, sizeof(fullPath), "%s/%s", current_dir, entry->d_name);
+		if (stat(fullPath, &entry_stat) != 0)
+			continue;
+
+		if (list_dir) {
+			if (S_ISDIR(entry_stat.st_mode)) {
+				// list ".." only when not in root directory
+				if (strcmp(current_dir, PATH_DATABASE) == 0 &&
+					strcmp(entry->d_name, "..") == 0) {
+					continue;
+				}
+				snprintf(MenuContext[menu_start_idx + number], MAXLINE, "%s/", entry->d_name);
+				number += 1;
+			}
+		} else if (S_ISREG(entry_stat.st_mode)) {
+			snprintf(MenuContext[menu_start_idx + number], MAXLINE, "%s", entry->d_name);
+			number += 1;
 		}
 	}
 
-	do {
-		// Skip "."
-		if (strcmp(findFileData.cFileName, ".") != 0) {
+	closedir(dir);
 
-			if (list_dir) {
-				if (findFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-					// list ".." only when not in root directory
-					if (strcmp(current_dir, PATH_DATABASE) == 0 &&
-						strcmp(findFileData.cFileName, "..") == 0) {
-						continue;
-					}
-					snprintf(MenuContext[menu_start_idx + number], MAXLINE, "%s\\", findFileData.cFileName);
-					number += 1;
-				}
-				else {
-					// skip non-directory filenames
-					continue;
-				}
-			} else if (findFileData.dwFileAttributes & FILE_ATTRIBUTE_ARCHIVE) {
-				snprintf(MenuContext[menu_start_idx + number], MAXLINE, "%s", findFileData.cFileName);
-				number += 1;
-			}
-		}
-	} while (FindNextFileA(findHandle, &findFileData));
-
-	FindClose(findHandle);
+	// readdir() returns the entries in no particular order
+	qsort(MenuContext[menu_start_idx], number, sizeof(MenuContext[0]), CompareMenuEntry);
 
 	return number;
 }
 
-int ListQzFilesRecursive(const char *dir, char FilePaths[][MAX_PATH], int count)
+int ListQzFilesRecursive(const char *dir_path, char FilePaths[][MAX_PATH], int count)
 {
-	WIN32_FIND_DATAA findFileData;
-	HANDLE findHandle;
-	char searchPath[MAX_PATH], fullPath[MAX_PATH];
+	DIR *dir;
+	struct dirent *entry;
+	struct stat entry_stat;
+	char fullPath[MAX_PATH];
 	int name_len;
 
-	snprintf(searchPath, MAX_PATH, "%s\\*", dir);
-	findHandle = FindFirstFileA(searchPath, &findFileData);
-	if (findHandle == INVALID_HANDLE_VALUE)
+	dir = opendir(dir_path);
+	if (dir == NULL)
 		return count;	// cannot open the directory, just skip it
 
-	do {
-		if (strcmp(findFileData.cFileName, ".") == 0 || strcmp(findFileData.cFileName, "..") == 0)
+	while ((entry = readdir(dir)) != NULL) {
+		// Skip ".", ".." and hidden files
+		if (entry->d_name[0] == '.')
 			continue;
 
-		snprintf(fullPath, MAX_PATH, "%s\\%s", dir, findFileData.cFileName);
+		snprintf(fullPath, MAX_PATH, "%s/%s", dir_path, entry->d_name);
+		if (stat(fullPath, &entry_stat) != 0)
+			continue;
 
-		if (findFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+		if (S_ISDIR(entry_stat.st_mode)) {
 			count = ListQzFilesRecursive(fullPath, FilePaths, count);	// recurse into sub-directory
 		}
-		else if (findFileData.dwFileAttributes & FILE_ATTRIBUTE_ARCHIVE) {
-			name_len = strlen(findFileData.cFileName);
-			if (name_len > 3 && strcmp(findFileData.cFileName + name_len - 3, ".qz") == 0
+		else if (S_ISREG(entry_stat.st_mode)) {
+			name_len = strlen(entry->d_name);
+			if (name_len > 3 && strcmp(entry->d_name + name_len - 3, ".qz") == 0
 				&& count < MAXVALUE) {
 				strncpy(FilePaths[count], fullPath, MAX_PATH);
 				count += 1;
 			}
 		}
-	} while (FindNextFileA(findHandle, &findFileData));
+	}
 
-	FindClose(findHandle);
+	closedir(dir);
 
 	return count;
 }
@@ -258,7 +279,7 @@ int GetMenuFunctions(char MenuContext[][MAXLINE], int menu_start_idx)
 	return MAX_USER_FUNC_COUNT;
 }
 
-int ReadQuestion(char Answer[][MAXLINE], char Question[][MAXLINE], char *filename)
+int ReadQuestion(char Answer[][MAXLINE], char Question[][MAXLINE], const char *filename)
 {
 	fstream QuizFile;
 	int number = 0;
@@ -282,6 +303,7 @@ int ReadQuestion(char Answer[][MAXLINE], char Question[][MAXLINE], char *filenam
 		{
 			QuizFile.getline(buffer, sizeof(buffer));
 			//read the file line by line
+			buffer[strcspn(buffer, "\r")] = '\0';	//remove CR of Windows line ending
 			
 			pch = strtok(buffer, split);
 			if(pch == NULL)
@@ -396,8 +418,7 @@ void SearchOnMenu()
 
 	ShowText("請輸入要從資料庫中搜尋的字串：",
 	 "Please Enter the string you want to search from the database: ");
-	fflush(stdin);
-	gets(search);
+	ReadLine(search, sizeof(search));
 
 	ShowText("\n\n\t答案(英文)\t\t\t\t\t\t題目(中文)\n\n",
 	 "\n\nAnswer\t(English)\t\t\t\t\t\tQuestion(Chinese)\n\n");
@@ -416,6 +437,7 @@ void SearchOnMenu()
 		while(!OpenFile.eof())
 		{
 			OpenFile.getline(linebuffer, sizeof(linebuffer));
+			linebuffer[strcspn(linebuffer, "\r")] = '\0';	//remove CR of Windows line ending
 			ptr = strtok(linebuffer, split);
 			if(ptr == NULL)
 				continue;
@@ -480,11 +502,10 @@ void SearchOnMenu()
 		return;
 	//if the user wants to save the result
 	ShowText("請輸入新的檔案名稱：", "Please enter new file name: ");
-	fflush(stdin);
-	gets(linebuffer);
+	ReadLine(linebuffer, sizeof(linebuffer));
 
 	char save_path[MAX_PATH];
-	snprintf(save_path, sizeof(save_path), "%s\\%s.qz", PATH_DATABASE, linebuffer);
+	snprintf(save_path, sizeof(save_path), "%s/%s.qz", PATH_DATABASE, linebuffer);
 	OpenFile.open(save_path, ios::out);
 	if(!OpenFile)
 	{
@@ -509,9 +530,9 @@ void CreateNewLib(const char *current_dir)
 	fstream NewQuizFile;
 	
 	ShowText("請輸入想創建檔案的檔名：", "Please enter the filename of a new file: ");
-	gets(new_filename);
+	ReadLine(new_filename, sizeof(new_filename));
 	//check if there is any file that does exist in the same directory
-	snprintf(filename, sizeof(filename), "%s\\%s.qz", current_dir, new_filename);
+	snprintf(filename, sizeof(filename), "%s/%s.qz", current_dir, new_filename);
 	NewQuizFile.open(filename, ios::in);
 	if(NewQuizFile.is_open())		//the file does exist
 	{
@@ -543,12 +564,12 @@ void EditOnMenu(const char *current_dir, char Menu[][MAXLINE], int total)
 	ShowText("從選單中選擇要編輯的檔案：", "Select which you want to edit on Menu:");
 
 	int menu_edit_total = 0;
-	char Menu_Edit[MAXVALUE][MAXLINE] = {0};
+	char Menu_Edit[MAXVALUE][MAXLINE] = {{0}};
 
 	// filter out all directories and blocks, only keep the filenames for edit
 	for (int i = 0; i < total; i++)
 	{
-		if ((Menu[i][strlen(Menu[i]) - 1] == '\\') ||
+		if ((Menu[i][strlen(Menu[i]) - 1] == '/') ||
 			(strcmp(Menu[i], MENU_EMPTY_BLOCK_OPT) == 0))
 		{
 			continue;
@@ -560,7 +581,7 @@ void EditOnMenu(const char *current_dir, char Menu[][MAXLINE], int total)
 	MENU *menu = new MENU();
 	int choose;
 	int tmp_strlen = 0;
-	char cmd_rename[MAX_PATH * 2 + 100] = {0}, selected_filename[MAX_PATH] = {0}, text_filename[MAX_PATH] = {0};
+	char selected_filename[MAX_PATH] = {0}, text_filename[MAX_PATH] = {0};
 	menu->InitMenu(Menu_Edit, 0, menu_edit_total, InitialY, 7, 164);
 	do
 	{
@@ -570,31 +591,37 @@ void EditOnMenu(const char *current_dir, char Menu[][MAXLINE], int total)
 	if(choose == ESCAPE)
 		return;
 
-	snprintf(selected_filename, sizeof(selected_filename), "%s\\%s", current_dir, Menu_Edit[choose]);
-	strcpy(text_filename, Menu_Edit[choose]);
+	snprintf(selected_filename, sizeof(selected_filename), "%s/%s", current_dir, Menu_Edit[choose]);
+	strcpy(text_filename, selected_filename);
 
 	tmp_strlen = strlen(text_filename);
-	if ((text_filename[tmp_strlen - 1] == 'z') &&
+	if ((tmp_strlen > 3) &&
+		(text_filename[tmp_strlen - 1] == 'z') &&
 		(text_filename[tmp_strlen - 2] == 'q') &&
 		(text_filename[tmp_strlen - 3] == '.')
 	)
 	{
-		text_filename[tmp_strlen - 3] = '\0';
-		snprintf(text_filename, sizeof(text_filename), "%s.txt", text_filename);
+		strcpy(text_filename + tmp_strlen - 2, "txt");
 	}
 
-	snprintf(cmd_rename, sizeof(cmd_rename), "rename \"%s\" \"%s\"", selected_filename, text_filename);
-	system(cmd_rename);					//change qz file to txt file
+	if (rename(selected_filename, text_filename) != 0)	//change qz file to txt file
+	{
+		ChangeColour(COLOR_LIGHT_RED);
+		ShowText("\n無法重新命名檔案 ", "\nCannot rename the file ");
+		cout << selected_filename << endl;
+		ChangeColour(COLOR_NORMAL);
+		getch();
+		return;
+	}
 	
 	cout << endl;
-	snprintf(selected_filename, sizeof(selected_filename), "%s\\%s", current_dir, text_filename);
-	txtToqz(selected_filename);			//change txt file to qz file
+	txtToqz(text_filename);			//change txt file to qz file
 }
 
 void txtToqz(char *filename)	//transfer the ex-filename from txt to qz
 {
-	char cmd_rename[MAX_PATH * 2 + 100] = "\"";	//command rename prompt
-	char text_filename[MAX_PATH] = {0}, *last_backslash = NULL;
+	char cmd_open[MAX_PATH + 100] = {0};	//command to open the editor
+	char qz_filename[MAX_PATH] = {0};
 	int len_fn = 0;
 
 	cout << endl;
@@ -611,45 +638,53 @@ void txtToqz(char *filename)	//transfer the ex-filename from txt to qz
 	ShowText("題目將會長這樣：\n\n", "The Quiz would look like:\n\n");
 	cout << "1. n.快樂的, 5 characters: _____\n\n";
 	ChangeColour(COLOR_PURPLE);
-	ShowText("完成題目後請儲存並關閉記事本，程式將會繼續執行...",
-	 "After completed to build the library, please save and close Notepad.\n"
+#ifdef __APPLE__
+	ShowText("完成題目後請儲存並結束文字編輯 (⌘Q)，程式將會繼續執行...",
+	 "After completed to build the library, please save and quit TextEdit (Cmd+Q).\n"
 	 "The programme would run automatically...");
 	ChangeColour(COLOR_NORMAL);
 
-	snprintf(cmd_rename, sizeof(cmd_rename), "\"%s\"", filename);
-	system(cmd_rename);	//open the txt file to modify the quiz file
+	//open the txt file with TextEdit and wait until TextEdit quits
+	snprintf(cmd_open, sizeof(cmd_open), "open -W -e \"%s\"", filename);
+	system(cmd_open);
+#else
+	ShowText("完成題目後請儲存並關閉文字編輯器，再按下任意鍵繼續...",
+	 "After completed to build the library, please save and close the text editor,\n"
+	 "then press any key to continue...");
+	ChangeColour(COLOR_NORMAL);
 
-	snprintf(cmd_rename, sizeof(cmd_rename), "rename \"%s\" ", filename);
+	//open the txt file with the default text editor, xdg-open returns immediately
+	snprintf(cmd_open, sizeof(cmd_open), CMD_OPEN " \"%s\" >/dev/null 2>&1", filename);
+	system(cmd_open);
+	getch();
+#endif
+	cout << endl;
 
-	// the target argument of rename command cannot contain the directory
-	last_backslash = strrchr(filename, '\\');
-	if (last_backslash != NULL)
+	//change the extension from .txt to .qz
+	strcpy(qz_filename, filename);
+	len_fn = strlen(qz_filename);
+	if (len_fn > 4 && strcmp(qz_filename + len_fn - 4, ".txt") == 0)
+		strcpy(qz_filename + len_fn - 3, "qz");
+
+	if (rename(filename, qz_filename) != 0)
 	{
-		last_backslash++;
-		for (char *c = last_backslash; *c != '\0'; c++)
-		{
-			text_filename[len_fn++] = *c;
-		}
+		ChangeColour(COLOR_LIGHT_RED);
+		ShowText("無法重新命名檔案 ", "Cannot rename the file ");
+		cout << filename << endl;
+		ChangeColour(COLOR_NORMAL);
+		getch();
 	}
-	text_filename[len_fn] = '\0';
-
-	text_filename[strlen(text_filename) - 3] = 'q';
-	text_filename[strlen(text_filename) - 2] = 'z';
-	text_filename[strlen(text_filename) - 1] = '\0';
-	snprintf(cmd_rename, sizeof(cmd_rename), "%s \"%s\"", cmd_rename, text_filename);
-
-	system(cmd_rename);
 }
 
 void DeleteOnMenu(const char *current_dir, char Menu[][MAXLINE], int chosen, int total)
 {
-	char file_path[MAX_PATH] = {0}, cmd_buffer[MAX_PATH + 10], user_input = '\0';
-	snprintf(file_path, sizeof(file_path), "%s\\%s", current_dir, Menu[chosen]);
+	char file_path[MAX_PATH] = {0}, user_input = '\0';
+	snprintf(file_path, sizeof(file_path), "%s/%s", current_dir, Menu[chosen]);
 
 	ProgrammeTitle();
 
 	// check if the selected option is folder, the folder cannot be deleted
-	if (file_path[strlen(file_path) - 1] == '\\') {
+	if (file_path[strlen(file_path) - 1] == '/') {
 		ChangeColour(COLOR_LIGHT_GREEN);
 		cout << " " << file_path;
 		ShowText(" 是資料夾，無法被刪除！", " is a folder, cannot be deleted!");
@@ -684,8 +719,13 @@ void DeleteOnMenu(const char *current_dir, char Menu[][MAXLINE], int chosen, int
 	if (user_input == 'N')	// cancel file deletion by user
 		return;
 
-	snprintf(cmd_buffer, sizeof(cmd_buffer), "del %s", file_path);
-	system(cmd_buffer);
+	if (remove(file_path) != 0) {
+		ChangeColour(COLOR_LIGHT_RED);
+		ShowText("檔案刪除失敗! 按任意鍵繼續...", "Failed to delete the file! Press any keys to continue...");
+		ChangeColour(COLOR_NORMAL);
+		getch();
+		return;
+	}
 
 	ShowText("檔案已經刪除! 按任意鍵繼續...", "The file has been deleted! Press any keys to continue...");
 	getch();
@@ -693,15 +733,16 @@ void DeleteOnMenu(const char *current_dir, char Menu[][MAXLINE], int chosen, int
 
 bool SearchString(char *Source, char *Search)
 {//Search String Search from Source string, if they have the part in common, return true
-	if(strlen(Source) < strlen(Search))
+	int source_len = strlen(Source), search_len = strlen(Search);
+	if(source_len < search_len)
 		return false;
-	for(int i = 0; i <= strlen(Source) - strlen(Search); i++)
+	for(int i = 0; i <= source_len - search_len; i++)
 	{
-		for(int j = 0; j < strlen(Search); j++)
+		for(int j = 0; j < search_len; j++)
 		{
 			if(Source[i + j] != Search[j])
 				break;
-			else if(j == strlen(Search) - 1)
+			else if(j == search_len - 1)
 				return true;
 		}
 	}
@@ -752,8 +793,7 @@ ReStart:
 	ShowText("請輸入您想要測驗的題數 (輸入 * 或留白代表全部) ",
 	 "Please enter how much questions you want to answer (enter * or leave blank represents ALL) ");
 	cout << "(<= " << total << "): ";
-	fflush(stdin);
-	gets(buffer);
+	ReadLine(buffer, sizeof(buffer));
 	cout << endl;
 
 	// trim the buffer
@@ -854,7 +894,7 @@ int EnteringAnswer(int wordlength, char *rewords)
 	unsigned char keybuffer;
 	EAInit(wordlength);
 	
-	while(keybuffer = getch())
+	while((keybuffer = getch()))
 	{
 		if((int)keybuffer == 27)
 		{	//clear the entering line and buffer
@@ -1032,6 +1072,7 @@ void RefreshHistory()
 	while(!HisFile.eof())
 	{
 		HisFile.getline(buffer[num], sizeof(buffer[num]));
+		buffer[num][strcspn(buffer[num], "\r")] = '\0';	//remove CR of Windows line ending
 		num += 1;
 	}
 	HisFile.close();

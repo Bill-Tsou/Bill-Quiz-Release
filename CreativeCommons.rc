@@ -1,4 +1,0 @@
-﻿#include "CreativeCommons.h"
-
-BITMAP_CREATIVECOMMONS BITMAP "CreativeCommons.bmp"
-

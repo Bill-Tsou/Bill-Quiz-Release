@@ -37,9 +37,16 @@ enum blockLimDir{
 #define MENU_EMPTY_BLOCK_OPT "*BLOCK*"
 
 /* ==== function prototypes ==== */
-// general Windows API
-void ChangeColour(int colour);
+// general console API (termios + ANSI escape codes)
+void ChangeColour(int colour);		// colour uses Windows console colour codes (bg << 4 | fg)
 void GotoXY(int x, int y);
+void ClearScreen();
+void ResetConsole();				// restore the default terminal colour
+// read one key without echo, arrow/Home/End/Delete keys are translated to
+// the Windows conio codes: 224 followed by 72/80/75/77/71/79/83
+int getch();
+// read one line from stdin into buf without the trailing newline
+char *ReadLine(char *buf, int size);
 
 /* ======== */
 
@@ -59,7 +66,6 @@ class MENU
 		int Inity;
 		int func_num;
 		int total_ContextNumber;
-		short int initcoordy;
 		unsigned char unchoose_colour;
 		unsigned char choose_colour;
 		void ShowContext();

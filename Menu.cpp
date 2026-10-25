@@ -1,22 +1,168 @@
 ﻿#include <iostream>
-#include <windows.h>
+#include <stdio.h>
 #include <string.h>
-#include <conio.h>
+#include <termios.h>
+#include <unistd.h>
 #include "Menu.h"
 
 using namespace std;
 
+// Windows console colour index -> ANSI colour index
+// (Windows: 0 black, 1 blue, 2 green, 3 cyan, 4 red, 5 magenta, 6 yellow, 7 white)
+static const int win_to_ansi[8] = {0, 4, 2, 6, 1, 5, 3, 7};
+
 void ChangeColour(int colour)
 {	//standard function to change the colour which will show the following time
-	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-	SetConsoleTextAttribute(hConsole, colour);
+	int fg = colour & 0x0F, bg = (colour >> 4) & 0x0F;
+	int fg_code, bg_code;
+
+	if(fg == COLOR_NORMAL && bg == 0)
+	{	//use the default colour of the terminal
+		cout << "\033[0m";
+		return;
+	}
+
+	if(fg == COLOR_NORMAL)
+		fg_code = 39;				//default foreground colour
+	else
+		fg_code = (fg & 0x08 ? 90 : 30) + win_to_ansi[fg & 0x07];
+
+	if(bg == 0)
+		bg_code = 49;				//default background colour
+	else
+		bg_code = (bg & 0x08 ? 100 : 40) + win_to_ansi[bg & 0x07];
+
+	cout << "\033[0;" << fg_code << ";" << bg_code << "m";
 }
 
 void GotoXY(int x, int y)
 {	//standard function use to let the cursor goto the coordinate (x,y)
-	COORD pos = {x, y};
-	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-	SetConsoleCursorPosition(hConsole, pos);
+	cout << "\033[" << (y + 1) << ";" << (x + 1) << "H";
+}
+
+void ClearScreen()
+{	//clear the screen and the scrollback, then move the cursor to the top-left corner
+	cout << "\033[2J\033[3J\033[H" << flush;
+}
+
+void ResetConsole()
+{
+	cout << "\033[0m" << flush;
+}
+
+// read one byte from stdin, return -1 when nothing could be read
+static int ReadByte()
+{
+	unsigned char c;
+	if(read(STDIN_FILENO, &c, 1) != 1)
+		return -1;
+	return c;
+}
+
+// translate the rest of an escape sequence (after ESC) to the conio key code,
+// return -2 when ESC was pressed alone, -1 for an unsupported sequence
+static int TranslateEscape()
+{
+	int c = ReadByte();
+	if(c == -1)
+		return -2;
+	if(c != '[' && c != 'O')
+		return -1;
+
+	c = ReadByte();
+	switch(c)
+	{
+		case 'A': return 72;		//key up
+		case 'B': return 80;		//key down
+		case 'C': return 77;		//key right
+		case 'D': return 75;		//key left
+		case 'H': return 71;		//key home
+		case 'F': return 79;		//key end
+	}
+
+	if(c >= '0' && c <= '9')
+	{	//sequences like ESC [ 3 ~
+		int num = c - '0';
+		while((c = ReadByte()) >= '0' && c <= '9')
+			num = num * 10 + (c - '0');
+		if(c != '~')
+			return -1;
+		switch(num)
+		{
+			case 1: case 7: return 71;	//key home
+			case 4: case 8: return 79;	//key end
+			case 3: return 83;			//key delete
+		}
+	}
+	return -1;
+}
+
+int getch()
+{
+	static int pending = -1;	//second code of a translated key
+	struct termios old_attr, raw_attr;
+	int key;
+
+	if(pending >= 0)
+	{
+		key = pending;
+		pending = -1;
+		return key;
+	}
+
+	cout << flush;		//show everything before waiting for the input
+
+	if(tcgetattr(STDIN_FILENO, &old_attr) != 0)
+	{	//stdin is not a terminal
+		key = ReadByte();
+		return (key == '\n') ? 13 : key;
+	}
+
+	raw_attr = old_attr;
+	raw_attr.c_lflag &= ~(ICANON | ECHO | ISIG);
+	raw_attr.c_iflag &= ~(ICRNL | IXON);
+	raw_attr.c_cc[VMIN] = 1;
+	raw_attr.c_cc[VTIME] = 0;
+	tcsetattr(STDIN_FILENO, TCSANOW, &raw_attr);
+
+	key = ReadByte();
+	if(key == 27)
+	{	//wait 100ms for the rest of the escape sequence
+		raw_attr.c_cc[VMIN] = 0;
+		raw_attr.c_cc[VTIME] = 1;
+		tcsetattr(STDIN_FILENO, TCSANOW, &raw_attr);
+
+		int code = TranslateEscape();
+		if(code >= 0)
+		{
+			pending = code;
+			key = 224;
+		}
+		else if(code == -1)
+		{	//ignore unsupported keys such as Page Up, drop the rest of the sequence
+			while(ReadByte() != -1);
+			key = 0;
+		}
+	}
+	else if(key == 127)		//backspace
+		key = 8;
+	else if(key == '\n')	//enter
+		key = 13;
+
+	tcsetattr(STDIN_FILENO, TCSANOW, &old_attr);
+	return key;
+}
+
+char *ReadLine(char *buf, int size)
+{
+	cout << flush;
+	if(fgets(buf, size, stdin) == NULL)
+	{
+		buf[0] = '\0';
+		return NULL;
+	}
+	buf[strcspn(buf, "\r\n")] = '\0';
+	return buf;
 }
 
 MENU::MENU()
@@ -92,7 +238,7 @@ int MENU::StartChoose(int pass)
 	cout << MenuContext[pass];
 	
 	//then, begin the function to choose
-	unsigned char key;
+	unsigned char key = 0;
 	//making the input key in the range (0, 255)
 	int choosenum = pass;
 	while(key != 13)	//esc to escape the loop and return the number of Chosen one

@@ -4,6 +4,8 @@
 
 #include <iostream>
 #include <fstream>
+#include <signal.h>
+#include <unistd.h>
 
 #include "QuizCommon.h"
 
@@ -12,16 +14,24 @@ using namespace std;
 //Set the default programme language as English
 int Programme_Language = English;
 
+// restore the terminal colour when the programme is interrupted
+static void SignalHandler(int sig)
+{
+	const char reset[] = "\033[0m\n";
+	write(STDOUT_FILENO, reset, sizeof(reset) - 1);
+	_exit(128 + sig);
+}
+
 int main()
 {
 	int total = 0, chosen = 0, passchoose = 0, dir_file_cnt = 0, function_cnt = 0;
 	char current_dir[MAX_PATH] = {0}; // path of database list
 	char Answer[MAXVALUE][MAXLINE], Question[MAXVALUE][MAXLINE];
 
-    // Set the console output code page to UTF-8 to fix display error on Windows 11
-    SetConsoleOutputCP(65001);
-
-	RegisterCreativeCommonsDialog();	//register dialog class only once
+	// restore the terminal colour when the programme exits
+	atexit(ResetConsole);
+	signal(SIGINT, SignalHandler);
+	signal(SIGTERM, SignalHandler);
 
 	// initialize current directory
 	strncpy(current_dir, PATH_DATABASE, sizeof(current_dir));
@@ -31,14 +41,14 @@ int main()
 
 Start:
 	MENU *menu = new MENU();
-	system("cls");					//clear everything on the console window
+	ClearScreen();					//clear everything on the console window
 	ProgrammeTitle();				//show the programme title
 
 	if(menu == NULL) {
 		ChangeColour(COLOR_LIGHT_RED);
 		ShowText("沒有足夠的記憶體建立選單!\n", "There is no enough memory for creating Menu\n");
 		ChangeColour(COLOR_NORMAL);
-		system("pause");
+		PauseConsole();
 		return EXIT_FAILURE;
 	}
 
@@ -47,7 +57,7 @@ Start:
 	if(dir_file_cnt == ERROR_CODE)
 	{
 		delete menu;
-		system("pause");
+		PauseConsole();
 		return EXIT_FAILURE;
 	}
 
@@ -56,7 +66,7 @@ Start:
 	if(function_cnt == ERROR_CODE)
 	{
 		delete menu;
-		system("pause");
+		PauseConsole();
 		return EXIT_FAILURE;
 	}
 
@@ -68,7 +78,7 @@ Start:
 		ChangeColour(COLOR_NORMAL);
 
 		delete menu;
-		system("pause");
+		PauseConsole();
 		return EXIT_FAILURE;
 	}
 
@@ -108,7 +118,7 @@ Start:
 	case USER_FUNC_OPEN_DIRECTORY:
 	{
 		char path_buf[MAX_PATH];
-		snprintf(path_buf, sizeof(path_buf), "explorer \"%s\"", current_dir);
+		snprintf(path_buf, sizeof(path_buf), CMD_OPEN " \"%s\"", current_dir);
 		system(path_buf);
 		goto Start;
 	}
@@ -188,16 +198,16 @@ Start:
 	default:
 
 		// to check whether the selected item is directory
-		if (Answer[chosen][strlen(Answer[chosen]) - 1] == '\\') {
+		if (Answer[chosen][strlen(Answer[chosen]) - 1] == '/') {
 			// get rid the the last character
 			Answer[chosen][strlen(Answer[chosen]) - 1] = '\0';
 
 			// is directory, check if it is previous directory
 			if (strcmp(Answer[chosen], "..") == 0) {
 				// go to previous directory
-				char *last_backslash = strrchr(current_dir, '\\');
-				if (last_backslash != NULL) {
-					*last_backslash = '\0'; // truncate to previous directory
+				char *last_slash = strrchr(current_dir, '/');
+				if (last_slash != NULL) {
+					*last_slash = '\0'; // truncate to previous directory
 				}
 				else {
 					// back to root directory
@@ -205,7 +215,9 @@ Start:
 				}
 			} else {
 				// go to selected sub-directory
-				snprintf(current_dir, sizeof(current_dir), "%s\\%s", current_dir, Answer[chosen]);
+				char sub_dir[MAX_PATH];
+				snprintf(sub_dir, sizeof(sub_dir), "%s/%s", current_dir, Answer[chosen]);
+				strncpy(current_dir, sub_dir, sizeof(current_dir));
 			}
 			// enter different direcctory with initial cursor position
 			passchoose = 0;
@@ -217,7 +229,7 @@ Start:
 		GotoXY(0, InitialY + total);
 
 		char filename[MAX_PATH];
-		snprintf(filename, sizeof(filename), """%s\\%s", current_dir, Answer[chosen]);
+		snprintf(filename, sizeof(filename), "%s/%s", current_dir, Answer[chosen]);
 		total = ReadQuestion(Answer, Question, filename);	//Read the file
 		if(total == 0)
 		{
