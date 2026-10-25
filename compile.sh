@@ -36,6 +36,11 @@ do_compile() {
 	fi
 	GTK_CFLAGS=$(pkg-config --cflags gtk+-3.0)
 	GTK_LIBS=$(pkg-config --libs gtk+-3.0)
+	if [ "$(uname -s)" = "Darwin" ]; then
+		# CoreGraphics is used to wait until the About window is removed from the screen,
+		# AppKit (through the Objective-C runtime) brings the About window to the front
+		GTK_LIBS="$GTK_LIBS -framework CoreGraphics -framework CoreFoundation -framework AppKit"
+	fi
 
 	echo "Compiling QuizRelease.cpp ..."
 	$CXX -c QuizRelease.cpp -o QuizRelease.o $CXXFLAGS || build_error

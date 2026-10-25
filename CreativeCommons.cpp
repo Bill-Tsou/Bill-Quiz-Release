@@ -6,6 +6,12 @@
 
 #include <iostream>
 #include <gtk/gtk.h>
+#ifdef __APPLE__
+#include <unistd.h>
+#include <CoreGraphics/CoreGraphics.h>
+#include <objc/runtime.h>
+#include <objc/message.h>
+#endif
 
 #include "CreativeCommons.h"
 #include "Menu.h"
@@ -13,6 +19,102 @@
 using namespace std;
 
 extern int Programme_Language;
+
+#ifdef __APPLE__
+// check whether this programme still has any normal window shown on the screen
+static bool HasOnScreenWindow()
+{
+	bool found = false;
+	CFArrayRef list = CGWindowListCopyWindowInfo(kCGWindowListOptionOnScreenOnly, kCGNullWindowID);
+	if(list == NULL)
+		return false;
+
+	for(CFIndex i = 0; i < CFArrayGetCount(list) && !found; i++)
+	{
+		CFDictionaryRef info = (CFDictionaryRef)CFArrayGetValueAtIndex(list, i);
+		CFNumberRef pid_ref = (CFNumberRef)CFDictionaryGetValue(info, kCGWindowOwnerPID);
+		CFNumberRef layer_ref = (CFNumberRef)CFDictionaryGetValue(info, kCGWindowLayer);
+		int pid = 0, layer = -1;
+
+		if(pid_ref != NULL)
+			CFNumberGetValue(pid_ref, kCFNumberIntType, &pid);
+		if(layer_ref != NULL)
+			CFNumberGetValue(layer_ref, kCFNumberIntType, &layer);
+		if(pid == getpid() && layer == 0)
+			found = true;
+	}
+
+	CFRelease(list);
+	return found;
+}
+
+// call an Objective-C method without argument through the runtime C API
+static id ObjcSend(id object, const char *selector)
+{
+	return ((id (*)(id, SEL))objc_msgSend)(object, sel_registerName(selector));
+}
+
+// the application which was in front before the dialog is shown, e.g. the terminal
+static id PreviousFrontApp = NULL;
+
+// a programme started from the terminal is not activated by macOS,
+// bring it to the front so that the dialog is shown above the other windows,
+// call it after the dialog is shown (the native window exists then)
+static void ActivateProgramme()
+{
+	id workspace = ObjcSend((id)objc_getClass("NSWorkspace"), "sharedWorkspace");
+	PreviousFrontApp = ObjcSend(ObjcSend(workspace, "frontmostApplication"), "retain");
+
+	id app = ObjcSend((id)objc_getClass("NSApplication"), "sharedApplication");
+	((void (*)(id, SEL, BOOL))objc_msgSend)(app, sel_registerName("activateIgnoringOtherApps:"), YES);
+
+	//gtk_window_set_keep_above() does not change the window level on macOS,
+	//put all windows of this programme (only the dialog) on the floating level
+	const long floating_window_level = 3;	//NSFloatingWindowLevel
+	id windows = ObjcSend(app, "windows");
+	unsigned long count = ((unsigned long (*)(id, SEL))objc_msgSend)(windows, sel_registerName("count"));
+	for(unsigned long i = 0; i < count; i++)
+	{
+		id nswindow = ((id (*)(id, SEL, unsigned long))objc_msgSend)(windows,
+			sel_registerName("objectAtIndex:"), i);
+		((void (*)(id, SEL, long))objc_msgSend)(nswindow, sel_registerName("setLevel:"), floating_window_level);
+		ObjcSend(nswindow, "orderFrontRegardless");
+	}
+}
+
+// give the focus back to the terminal after the dialog is closed
+static void RestorePreviousFrontApp()
+{
+	if(PreviousFrontApp == NULL)
+		return;
+
+	const unsigned long activate_ignoring_other_apps = 1 << 1;	//NSApplicationActivateIgnoringOtherApps
+	((BOOL (*)(id, SEL, unsigned long))objc_msgSend)(PreviousFrontApp,
+		sel_registerName("activateWithOptions:"), activate_ignoring_other_apps);
+	ObjcSend(PreviousFrontApp, "release");
+	PreviousFrontApp = NULL;
+}
+#endif
+
+// keep processing the GTK events until the closed dialog is really removed from the screen,
+// the terminal programme does not run the GTK main loop anymore after the dialog returns
+static void FinishClosingDialog()
+{
+#ifdef __APPLE__
+	// macOS closes the window with an animation which only goes on while the events are processed
+	gint64 deadline = g_get_monotonic_time() + G_USEC_PER_SEC;	//wait at most 1 second
+	while(HasOnScreenWindow() && g_get_monotonic_time() < deadline)
+	{
+		while(gtk_events_pending())
+			gtk_main_iteration_do(FALSE);
+		g_usleep(10 * 1000);
+	}
+	RestorePreviousFrontApp();
+#endif
+	while(gtk_events_pending())
+		gtk_main_iteration_do(FALSE);
+	gdk_display_flush(gdk_display_get_default());
+}
 
 static const char *LicenseTextEn[] = {
 	"BY (Attribution): You should tag the one who designed the programme when sharing.",
@@ -105,9 +207,16 @@ void ShowCreativeCommonsDialog()
 	g_signal_connect(button, "clicked", G_CALLBACK(OnButtonOK), window);
 	gtk_box_pack_end(GTK_BOX(vbox), button, FALSE, FALSE, 0);
 
+	//show the dialog above the other windows
+	gtk_window_set_keep_above(GTK_WINDOW(window), TRUE);
 	gtk_widget_show_all(window);
+#ifdef __APPLE__
+	ActivateProgramme();
+#endif
 	gtk_window_present(GTK_WINDOW(window));
 
 	//run the main loop until the dialog is closed
 	gtk_main();
+
+	FinishClosingDialog();
 }
