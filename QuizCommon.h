@@ -96,7 +96,10 @@ int EnteringWords(char*, int);
 // function EnteringAnswer() note:
 //   return 1 when finishing entering the answer (by pressing Enter)
 //   return -1 when user quits the question (by pressing Ctrl+C)
-int EnteringAnswer(int, char*);
+//   return 2 when user looks up word in the dictionary (by pressing Tab)
+int EnteringAnswer(int wordlength, char *rewords, const char *word);
+//open the Cambridge dictionary page of the word with the browser
+void OpenDictionary(const char *word);
 void EAInit(int);
 //with what have been typed and the total number of the questions
 

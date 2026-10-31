@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <ctype.h>
 #include <dirent.h>
 #include <strings.h>
 #include <sys/stat.h>
@@ -816,7 +817,9 @@ ReStart:
 	ChangeColour(COLOR_LIGHT_BLUE);
 	ShowText(" === 測驗共 ", "There are ");
 	cout << choosenum;
-	ShowText(" 題，按下 Ctrl+C 放棄答題", " questions in quiz. Press Ctrl+C to quit the quiz.");
+	ShowText(" 題，按下 Ctrl+C 放棄答題，Tab 查詢劍橋字典（視為答錯並跳到下一題）",
+	 " questions in quiz. Press Ctrl+C to quit the quiz, Tab to look up the Cambridge Dictionary"
+	 " (counted as incorrect and go to the next question).");
 	cout << " ===" << endl << endl;
 	ChangeColour(COLOR_NORMAL);
 
@@ -828,7 +831,7 @@ ReStart:
 	{
 		cout << (i + 1) << ". " << Question[i] << " , " << strlen(Answer[i]);
 		ShowText(" 個字母: ", " characters: ");
-		ret_answer = EnteringAnswer(strlen(Answer[i]), buffer);
+		ret_answer = EnteringAnswer(strlen(Answer[i]), buffer, Answer[i]);
 		if(ret_answer == -1)		// user quits the question
 		{
 			ChangeColour(COLOR_LIGHT_YELLOW);
@@ -841,15 +844,19 @@ ReStart:
 		else
 			real_ques_num += 1;
 
-		if(strcmp(buffer, Answer[i]) == 0)	//compare the input and the answer
+		if(ret_answer != 2 && strcmp(buffer, Answer[i]) == 0)	//compare the input and the answer
 		{							//if the two are identical
 			ChangeColour(COLOR_LIGHT_GREEN);
 			ShowText("\n恭喜您 答對了！\n\n", "\nCongratulation! Correct answer!\n\n");
 		}
-		else						//Wrong
+		else						//Wrong, or the answer was looked up in the dictionary
 		{
 			ChangeColour(COLOR_LIGHT_RED);
-			ShowText("\n答錯了！正確答案是：", "\nIncorrect! Correct answer is: ");
+			if(ret_answer == 2)
+				ShowText("\n已查詢字典，本題視為答錯！正確答案是：",
+				 "\nDictionary was used, counted as incorrect! Correct answer is: ");
+			else
+				ShowText("\n答錯了！正確答案是：", "\nIncorrect! Correct answer is: ");
 			ChangeColour(COLOR_LIGHT_GREEN);
 			cout << Answer[i] << endl << endl;
 
@@ -887,16 +894,59 @@ ReStart:
 	}
 }
 
-int EnteringAnswer(int wordlength, char *rewords)
+void OpenDictionary(const char *word)
+{	//open the Cambridge English-Chinese (Traditional) dictionary page of the word with the browser
+	const char url_prefix[] = "https://dictionary.cambridge.org/dictionary/english-chinese-traditional/";
+	char slug[MAXLINE * 3] = {0}, cmd_open[sizeof(url_prefix) + sizeof(slug) + 50] = {0};
+	int len = 0;
+
+	//skip the leading and trailing spaces
+	const char *begin = word, *end = word + strlen(word);
+	while(begin < end && isspace((unsigned char)*begin))
+		begin++;
+	while(end > begin && isspace((unsigned char)*(end - 1)))
+		end--;
+
+	//the page name is in lower case and the words are joined with '-', e.g. track-record,
+	//encode the other characters so the url is also safe in the shell command
+	for(const char *c = begin; c < end && len < (int)sizeof(slug) - 4; c++)
+	{
+		unsigned char ch = (unsigned char)*c;
+		if(isalnum(ch) || ch == '-')
+			slug[len++] = tolower(ch);
+		else if(ch == ' ')
+			slug[len++] = '-';
+		else
+			len += snprintf(slug + len, sizeof(slug) - len, "%%%02X", ch);
+	}
+	slug[len] = '\0';
+
+	//run in the background, xdg-open might not return until the browser is closed
+	snprintf(cmd_open, sizeof(cmd_open), CMD_OPEN " \"%s%s\" >/dev/null 2>&1 &", url_prefix, slug);
+	system(cmd_open);
+}
+
+int EnteringAnswer(int wordlength, char *rewords, const char *word)
 {
 	char answer[MAXLINE];
 	int wordcursor = 0, storage = 0;
 	unsigned char keybuffer;
 	EAInit(wordlength);
 	
-	while((keybuffer = getch()))
+	while(true)
 	{
-		if((int)keybuffer == 27)
+		keybuffer = getch();
+		if((int)keybuffer == 0)
+			continue;			//ignore the unsupported keys such as Page Up
+		else if((int)keybuffer == 9)
+		{	//Tab: look up the word in the dictionary and go to the next question,
+			//the question is counted as incorrect
+			OpenDictionary(word);
+			answer[storage] = '\0';
+			strcpy(rewords, answer);
+			return 2;
+		}
+		else if((int)keybuffer == 27)
 		{	//clear the entering line and buffer
 			for(int i = 0; i < wordcursor; i++)	//let the cursor be the head of the line
 				cout << '\b';

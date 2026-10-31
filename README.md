@@ -11,6 +11,9 @@ kept on the `master` branch.
 
 - Interactive vocabulary quizzes: type the answer letter-by-letter with live feedback, choose how many
   questions to attempt each round.
+- Look up the current word in the [Cambridge English-Chinese (Traditional) Dictionary](https://dictionary.cambridge.org/dictionary/english-chinese-traditional/)
+  by pressing `Tab` while answering; the page opens in the browser, the question is counted as
+  incorrect (so it is saved to the history for review) and the quiz goes to the next question. Sentence answers may not have a dictionary entry.
 - Vocabulary libraries organized as a browsable folder tree under `database/`.
 - Search across every library file in `database/` for a keyword (English or Chinese) and optionally
   save the results as a new library.
